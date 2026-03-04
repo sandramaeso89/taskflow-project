@@ -3,13 +3,399 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TaskFlow </title>
+  <title>TaskFlow</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── Reset & Variables ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --color-bg:         #0d0d12;
+      --color-surface:    #15151e;
+      --color-surface2:   #1c1c28;
+      --color-border:     rgba(255,255,255,0.07);
+      --color-primary-h:  #b57bee;
+      --color-primary:    #9b5de5;
+      --color-accent:     #f15bb5;
+      --color-success:    #43d9ad;
+      --color-warning:    #ffd166;
+      --color-text:       #e8e8f0;
+      --color-muted:      #7a7a9a;
+      --radius:           14px;
+      --radius-sm:        8px;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    /* ── Fondo con textura ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(155,93,229,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 80% 80%, rgba(241,91,181,0.08) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(6px);
+      animation: fadeIn .2s ease;
+    }
+    .modal-overlay.hidden { display: none !important; }
+
+    .modal {
+      background: var(--color-surface);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 440px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(155,93,229,0.15);
+      animation: modalIn .22s cubic-bezier(.34,1.56,.64,1);
+    }
+    .modal h2 {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .modal input {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: .8rem 1rem;
+      color: var(--color-text);
+      font-size: .95rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .modal input:focus {
+      border-color: var(--color-primary-h);
+      box-shadow: 0 0 0 3px rgba(181,123,238,0.15);
+    }
+    .modal-actions {
+      display: flex; gap: .75rem; justify-content: flex-end;
+    }
+    .btn-cancelar {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: var(--radius-sm);
+      padding: .6rem 1.2rem;
+      color: var(--color-muted);
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: .9rem;
+      transition: border-color .2s, color .2s;
+    }
+    .btn-cancelar:hover { border-color: rgba(255,255,255,0.25); color: var(--color-text); }
+
+    /* ── Header ── */
+    header {
+      position: relative; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.1rem 2rem;
+      border-bottom: 1px solid var(--color-border);
+      background: rgba(13,13,18,0.8);
+      backdrop-filter: blur(12px);
+    }
+    .logo {
+      font-family: 'Inter', sans-serif;
+      font-weight: 800;
+      font-size: 1.2rem;
+      letter-spacing: -.01em;
+      background: linear-gradient(135deg, #c084fc, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .header-actions { display: flex; align-items: center; gap: 1rem; }
+
+    .btn-new {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: .6rem 1.2rem;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: .9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity .2s, transform .15s;
+      box-shadow: 0 4px 16px rgba(155,93,229,0.3);
+    }
+    .btn-new:hover { opacity: .9; transform: translateY(-1px); }
+    .btn-new:active { transform: translateY(0); }
+
+    .avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem; font-weight: 700; color: #fff;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* ── Layout ── */
+    .layout {
+      position: relative; z-index: 1;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: calc(100vh - 61px);
+    }
+
+    /* ── Sidebar ── */
+    aside {
+      border-right: 1px solid var(--color-border);
+      padding: 1.5rem 1.2rem;
+      display: flex; flex-direction: column; gap: 1.8rem;
+      background: rgba(13,13,18,0.5);
+    }
+    .sidebar-section h3 {
+      font-family: 'Inter', sans-serif;
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: .6rem;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: .6rem;
+      padding: .5rem .75rem;
+      border-radius: var(--radius-sm);
+      font-size: .88rem;
+      color: var(--color-muted);
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--color-text); }
+    .nav-item.active { background: rgba(155,93,229,0.12); color: var(--color-primary-h); }
+    .nav-count {
+      margin-left: auto;
+      font-size: .72rem;
+      background: rgba(255,255,255,0.07);
+      border-radius: 20px;
+      padding: .1rem .5rem;
+      color: var(--color-muted);
+    }
+    .nav-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    .progress-label {
+      display: flex; justify-content: space-between;
+      font-size: .78rem; color: var(--color-muted);
+      margin-bottom: .35rem;
+    }
+    .progress-bar {
+      height: 5px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+      border-radius: 99px;
+      transition: width .6s ease;
+    }
+
+    .input-buscar {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius-sm);
+      padding: .55rem .8rem;
+      color: var(--color-text);
+      font-size: .85rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .input-buscar:focus { border-color: var(--color-primary-h); }
+    .input-buscar::placeholder { color: var(--color-muted); }
+
+    /* ── Main ── */
+    main { padding: 2rem; overflow-y: auto; }
+
+    .main-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.8rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .main-title {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .filter-tabs { display: flex; gap: .4rem; }
+    .tab {
+      padding: .4rem .9rem;
+      border-radius: 20px;
+      font-size: .82rem;
+      color: var(--color-muted);
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all .2s;
+    }
+    .tab:hover { color: var(--color-text); border-color: rgba(255,255,255,0.1); }
+    .tab.active { background: rgba(155,93,229,0.15); color: var(--color-primary-h); border-color: rgba(155,93,229,0.3); }
+
+    /* ── Stats ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 1.2rem;
+      display: flex; flex-direction: column; gap: .4rem;
+      transition: border-color .2s, transform .2s;
+    }
+    .stat-card:hover { border-color: rgba(155,93,229,0.3); transform: translateY(-2px); }
+    .stat-icon { font-size: 1.3rem; }
+    .stat-num {
+      font-family: 'Inter', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .stat-label { font-size: .78rem; color: var(--color-muted); }
+
+    /* ── Tasks Section ── */
+    .tasks-section h2 {
+      font-family: 'Inter', sans-serif;
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--color-muted);
+      letter-spacing: .03em;
+      display: flex; align-items: center; gap: .6rem;
+      margin-bottom: .75rem;
+    }
+    .count-badge {
+      background: rgba(255,255,255,0.07);
+      border-radius: 20px;
+      padding: .1rem .55rem;
+      font-size: .72rem;
+      font-weight: 500;
+      color: var(--color-muted);
+    }
+
+    .lista-tareas {
+      list-style: none;
+      display: flex; flex-direction: column; gap: .6rem;
+      min-height: 40px;
+    }
+
+    /* ── Task Card ── */
+    .task-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: .85rem 1rem;
+      transition: border-color .2s, transform .15s, box-shadow .2s;
+      animation: slideIn .25s cubic-bezier(.34,1.3,.64,1);
+    }
+    .task-card:hover {
+      border-color: rgba(155,93,229,0.25);
+      transform: translateX(3px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .task-card.done {
+      opacity: .5;
+      border-color: rgba(255,255,255,0.04);
+    }
+    .task-card.done .task-title { text-decoration: line-through; color: var(--color-muted); }
+    .task-card.done .task-check {
+      background: var(--color-success);
+      border-color: var(--color-success);
+      color: #000;
+    }
+
+    .task-row {
+      display: flex; align-items: center; gap: .85rem;
+    }
+
+    .task-check {
+      width: 22px; height: 22px;
+      border-radius: 6px;
+      border: 2px solid rgba(255,255,255,0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: .75rem;
+      color: transparent;
+      flex-shrink: 0;
+      transition: all .2s;
+    }
+    .task-check:hover { border-color: var(--color-success); color: var(--color-success); }
+
+    .task-title {
+      font-size: .92rem;
+      color: var(--color-text);
+      flex: 1;
+    }
+
+    .btn-eliminar {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: .9rem;
+      opacity: 0;
+      transition: opacity .2s, transform .2s;
+      padding: .2rem .4rem;
+      border-radius: 6px;
+      color: var(--color-accent);
+    }
+    .task-card:hover .btn-eliminar { opacity: 1; }
+    .btn-eliminar:hover { transform: scale(1.2); background: rgba(241,91,181,0.1); }
+
+    /* ── Empty state ── */
+    .empty-state {
+      padding: 2rem 1rem;
+      text-align: center;
+      color: var(--color-muted);
+      font-size: .85rem;
+      border: 1px dashed rgba(255,255,255,0.07);
+      border-radius: var(--radius);
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+    @keyframes modalIn { from { opacity: 0; transform: scale(.92) translateY(-12px) } to { opacity: 1; transform: scale(1) translateY(0) } }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(-12px) } to { opacity: 1; transform: translateX(0) } }
+    .saliendo { animation: slideOut .28s ease forwards !important; }
+    @keyframes slideOut { to { opacity: 0; transform: translateX(20px); height: 0; padding: 0; margin: 0; } }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .layout { grid-template-columns: 1fr; }
+      aside { display: none; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
 </head>
 <body>
 
-<!-- Modal: la ventanita para escribir la tarea -->
+<!-- Modal -->
 <div id="modal-overlay" class="modal-overlay hidden">
   <div class="modal">
     <h2>Nueva tarea</h2>
@@ -40,8 +426,8 @@
     </div>
     <div class="sidebar-section">
       <h3>Categorías</h3>
-      <div class="nav-item"><span class="nav-dot" style="background:#6c63ff"></span> Trabajo <span class="nav-count">5</span></div>
-      <div class="nav-item"><span class="nav-dot" style="background:#ff6584"></span> Personal <span class="nav-count">4</span></div>
+      <div class="nav-item"><span class="nav-dot" style="background:#9b5de5"></span> Trabajo <span class="nav-count">5</span></div>
+      <div class="nav-item"><span class="nav-dot" style="background:#f15bb5"></span> Personal <span class="nav-count">4</span></div>
       <div class="nav-item"><span class="nav-dot" style="background:#43d9ad"></span> Estudio <span class="nav-count">3</span></div>
     </div>
     <div class="sidebar-section">
@@ -59,19 +445,35 @@
 
   <main>
     <div class="main-header">
-      <h1 class="main-title">Mis tareas <small style="font-size:.7rem;color:#bd70bb;font-weight:400">
+      <h1 class="main-title">Mis tareas</h1>
       <div class="filter-tabs">
-        <div class="tab active">Todas</div>
-        <div class="tab">Activas</div>
-        <div class="tab">Completadas</div>
+        <div class="tab active" data-filter="todas">Todas</div>
+        <div class="tab" data-filter="activas">Activas</div>
+        <div class="tab" data-filter="completadas">Completadas</div>
       </div>
     </div>
 
     <section class="stats-grid">
-      <div class="stat-card"><div class="stat-icon">🗂️</div><div class="stat-num" id="stat-total" style="color:var(--color-primary-h)">0</div><div class="stat-label">Total tareas</div></div>
-      <div class="stat-card"><div class="stat-icon">⚠️</div><div class="stat-num" style="color:var(--color-accent)">3</div><div class="stat-label">Alta prioridad</div></div>
-      <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-num" id="stat-completadas" style="color:var(--color-success)">0</div><div class="stat-label">Completadas</div></div>
-      <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-num" style="color:var(--color-warning)">4</div><div class="stat-label">Para hoy</div></div>
+      <div class="stat-card">
+        <div class="stat-icon">🗂️</div>
+        <div class="stat-num" id="stat-total" style="color:var(--color-primary-h)">0</div>
+        <div class="stat-label">Total tareas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-num" style="color:var(--color-accent)">3</div>
+        <div class="stat-label">Alta prioridad</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-num" id="stat-completadas" style="color:var(--color-success)">0</div>
+        <div class="stat-label">Completadas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📅</div>
+        <div class="stat-num" style="color:var(--color-warning)">4</div>
+        <div class="stat-label">Para hoy</div>
+      </div>
     </section>
 
     <section class="tasks-section">
@@ -84,24 +486,169 @@
   </main>
 </div>
 
-<style>
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px);}
-.hidden{display:none!important;}
-.modal{background:var(--color-surface);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:2rem;width:100%;max-width:440px;display:flex;flex-direction:column;gap:1rem;box-shadow:0 20px 60px rgba(0,0,0,0.5);animation:modalEntrada .2s ease;}
-.modal h2{margin:0;font-size:1.2rem;color:#fff;}
-.modal input{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:.75rem 1rem;color:inherit;font-size:1rem;font-family:inherit;outline:none;transition:border-color .2s;}
-.modal input:focus{border-color:var(--color-primary-h);}
-.modal-actions{display:flex;gap:.75rem;justify-content:flex-end;}
-.btn-cancelar{background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:.6rem 1.2rem;color:inherit;cursor:pointer;font-family:inherit;}
-.btn-eliminar{background:transparent;border:none;cursor:pointer;font-size:1rem;opacity:0;transition:opacity .2s;padding:.2rem .4rem;margin-left:auto;}
-.task-card:hover .btn-eliminar{opacity:1;}
-.input-buscar{width:100%;box-sizing:border-box;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:.6rem .8rem;color:inherit;font-size:.85rem;font-family:inherit;outline:none;}
-.lista-tareas{list-style:none;padding:0;margin:.5rem 0 0;display:flex;flex-direction:column;gap:.75rem;}
-@keyframes modalEntrada{from{opacity:0;transform:scale(.95) translateY(-10px)}to{opacity:1;transform:scale(1) translateY(0)}}
-.task-card.saliendo{animation:tareaFuera .3s ease forwards;}
-@keyframes tareaFuera{to{opacity:0;transform:translateX(20px)}}
-</style>
+<script>
+// ── Elementos ──
+const btnNuevaTarea    = document.getElementById("btn-nueva-tarea");
+const modalOverlay     = document.getElementById("modal-overlay");
+const inputTarea       = document.getElementById("input-tarea");
+const btnAnadir        = document.getElementById("btn-anadir");
+const btnCancelar      = document.getElementById("btn-cancelar");
+const listaPendientes  = document.getElementById("lista-pendientes");
+const listaCompletadas = document.getElementById("lista-completadas");
+const inputBuscar      = document.getElementById("input-buscar");
+const statTotal        = document.getElementById("stat-total");
+const statCompletadas  = document.getElementById("stat-completadas");
+const badgePendientes  = document.getElementById("badge-pendientes");
+const badgeCompletadas = document.getElementById("badge-completadas");
+const countTodas       = document.getElementById("count-todas");
+const countCompletadas = document.getElementById("count-completadas");
 
-<script src="app.js"></script>
+// ── Estado en memoria (sin localStorage) ──
+let tareas = [];
+
+function guardar() {
+  try { localStorage.setItem("taskflow-tareas", JSON.stringify(tareas)); } catch(e) {}
+}
+
+function cargar() {
+  try { tareas = JSON.parse(localStorage.getItem("taskflow-tareas")) || []; } catch(e) { tareas = []; }
+}
+
+// ── Contadores ──
+function actualizarContadores() {
+  const total       = tareas.length;
+  const completadas = tareas.filter(t => t.completada).length;
+  const pendientes  = total - completadas;
+
+  statTotal.textContent        = total;
+  statCompletadas.textContent  = completadas;
+  badgePendientes.textContent  = pendientes;
+  badgeCompletadas.textContent = completadas;
+  countTodas.textContent       = total;
+  countCompletadas.textContent = completadas;
+}
+
+// ── Modal ──
+function abrirModal() {
+  modalOverlay.classList.remove("hidden");
+  inputTarea.value = "";
+  setTimeout(() => inputTarea.focus(), 50);
+}
+
+function cerrarModal() {
+  modalOverlay.classList.add("hidden");
+}
+
+// ── Añadir ──
+function anadirTarea() {
+  const texto = inputTarea.value.trim();
+  if (!texto) {
+    inputTarea.style.borderColor = "#f15bb5";
+    inputTarea.style.boxShadow   = "0 0 0 3px rgba(241,91,181,0.2)";
+    setTimeout(() => {
+      inputTarea.style.borderColor = "";
+      inputTarea.style.boxShadow   = "";
+    }, 1200);
+    return;
+  }
+
+  const nuevaTarea = { id: Date.now(), texto, completada: false };
+  tareas.push(nuevaTarea);
+  guardar();
+  renderizarTarea(nuevaTarea);
+  actualizarContadores();
+  cerrarModal();
+}
+
+// ── Eliminar ──
+function eliminarTarea(id) {
+  tareas = tareas.filter(t => t.id !== id);
+  guardar();
+  const el = document.querySelector(`[data-id="${id}"]`);
+  if (el) {
+    el.classList.add("saliendo");
+    setTimeout(() => { el.remove(); actualizarContadores(); }, 300);
+  } else {
+    actualizarContadores();
+  }
+}
+
+// ── Toggle completada ──
+function toggleCompletada(id) {
+  const tarea = tareas.find(t => t.id === id);
+  if (!tarea) return;
+  tarea.completada = !tarea.completada;
+  guardar();
+  const el = document.querySelector(`[data-id="${id}"]`);
+  if (el) el.remove();
+  renderizarTarea(tarea);
+  actualizarContadores();
+}
+
+// ── Escapar HTML ──
+function escapeHTML(texto) {
+  const d = document.createElement("div");
+  d.appendChild(document.createTextNode(texto));
+  return d.innerHTML;
+}
+
+// ── Render tarea ──
+function renderizarTarea(tarea) {
+  const li = document.createElement("li");
+  li.className = "task-card" + (tarea.completada ? " done" : "");
+  li.setAttribute("data-id", tarea.id);
+
+  li.innerHTML = `
+    <div class="task-row">
+      <div class="task-check">${tarea.completada ? "✓" : ""}</div>
+      <div class="task-title">${escapeHTML(tarea.texto)}</div>
+      <button class="btn-eliminar" aria-label="Eliminar">🗑️</button>
+    </div>
+  `;
+
+  li.querySelector(".task-check").addEventListener("click", () => toggleCompletada(tarea.id));
+  li.querySelector(".btn-eliminar").addEventListener("click", () => eliminarTarea(tarea.id));
+
+  if (tarea.completada) listaCompletadas.appendChild(li);
+  else listaPendientes.appendChild(li);
+}
+
+// ── Filtrar ──
+function filtrarTareas() {
+  const termino = inputBuscar ? inputBuscar.value.trim().toLowerCase() : "";
+  document.querySelectorAll(".task-card").forEach(item => {
+    const titulo = item.querySelector(".task-title").textContent.toLowerCase();
+    item.style.display = titulo.includes(termino) ? "" : "none";
+  });
+}
+
+// ── Tabs de filtro ──
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    const filter = tab.dataset.filter;
+    document.querySelectorAll(".task-card").forEach(card => {
+      if (filter === "todas") card.style.display = "";
+      else if (filter === "activas") card.style.display = card.classList.contains("done") ? "none" : "";
+      else card.style.display = card.classList.contains("done") ? "" : "none";
+    });
+  });
+});
+
+// ── Eventos ──
+btnNuevaTarea.addEventListener("click", abrirModal);
+btnAnadir.addEventListener("click", anadirTarea);
+btnCancelar.addEventListener("click", cerrarModal);
+modalOverlay.addEventListener("click", e => { if (e.target === modalOverlay) cerrarModal(); });
+inputTarea.addEventListener("keydown", e => { if (e.key === "Enter") anadirTarea(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") cerrarModal(); });
+if (inputBuscar) inputBuscar.addEventListener("input", filtrarTareas);
+
+// ── Arranque ──
+cargar();
+tareas.forEach(t => renderizarTarea(t));
+actualizarContadores();
+</script>
 </body>
 </html>
