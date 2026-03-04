@@ -1,121 +1,195 @@
-// 1. "Las manos de JS": Buscamos los elementos en el HTML para poder tocarlos
-const btnNuevaTarea    = document.querySelector('.btn-new');
-const contenedorTareas = document.querySelector('.tasks-section');
+// ============================================================
+// APP.JS — El cerebro de TaskFlow
+// ============================================================
 
-// 2. Creamos un input y un botón en el header para reemplazar el prompt()
-// (el prompt() está bloqueado en navegadores modernos, así que lo hacemos "a mano")
-const header = document.querySelector('.header-actions');
+// ── 1. Agarramos los elementos del HTML ──
+const btnNuevaTarea    = document.getElementById("btn-nueva-tarea");  // Botón "+ Nueva tarea" del header
+const modalOverlay     = document.getElementById("modal-overlay");    // El fondo oscuro del modal
+const inputTarea       = document.getElementById("input-tarea");      // El input dentro del modal
+const btnAnadir        = document.getElementById("btn-anadir");       // Botón "Añadir tarea"
+const btnCancelar      = document.getElementById("btn-cancelar");     // Botón "Cancelar"
+const listaPendientes  = document.getElementById("lista-pendientes"); // <ul> tareas pendientes
+const listaCompletadas = document.getElementById("lista-completadas");// <ul> tareas completadas
+const inputBuscar      = document.getElementById("input-buscar");     // Buscador (Bonus)
 
-const inputTarea = document.createElement('input');
-inputTarea.type        = 'text';
-inputTarea.placeholder = '¿Qué quieres hacer?';
-inputTarea.style.cssText = `
-  display: none;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid #2e3354;
-  border-radius: 8px;
-  padding: .45rem 1rem;
-  color: #fff;
-  font-family: inherit;
-  font-size: .9rem;
-  outline: none;
-  width: 220px;
-`;
+// Contadores
+const statTotal        = document.getElementById("stat-total");
+const statCompletadas  = document.getElementById("stat-completadas");
+const badgePendientes  = document.getElementById("badge-pendientes");
+const badgeCompletadas = document.getElementById("badge-completadas");
+const countTodas       = document.getElementById("count-todas");
+const countCompletadas = document.getElementById("count-completadas");
 
-const btnConfirmar = document.createElement('button');
-btnConfirmar.textContent = 'Añadir';
-btnConfirmar.style.cssText = `
-  display: none;
-  background: #612163;
-  border: none;
-  border-radius: 8px;
-  padding: .45rem 1rem;
-  color: #fff;
-  font-family: inherit;
-  cursor: pointer;
-`;
 
-// Insertamos el input y el botón antes del avatar
-const avatar = header.querySelector('.avatar');
-header.insertBefore(btnConfirmar, avatar);
-header.insertBefore(inputTarea, btnConfirmar);
+// ── 2. Cargamos las tareas guardadas (o lista vacía) ──
+let tareas = JSON.parse(localStorage.getItem("taskflow-tareas")) || [];
 
-// 3. "El baúl de los recuerdos": Aquí guardaremos la lista de tareas
-let misTareas = [];
 
-// 4. Función para cargar las tareas guardadas (¡Para que no se olviden!)
-function cargarDeLaMemoria() {
-  const datosGuardados = localStorage.getItem('misTareasDeTaskFlow');
-  if (datosGuardados) {
-    // Convertimos el texto de la memoria en una lista de verdad
-    misTareas = JSON.parse(datosGuardados);
-    // Dibujamos cada tarea en la pantalla
-    misTareas.forEach(tarea => dibujarTareaEnPantalla(tarea));
+// ── 3. Guardar en LocalStorage ──
+function guardarEnLocalStorage() {
+  localStorage.setItem("taskflow-tareas", JSON.stringify(tareas));
+}
+
+
+// ── 4. Actualizar todos los contadores de la UI ──
+function actualizarContadores() {
+  const total       = tareas.length;
+  const completadas = tareas.filter(t => t.completada).length;
+  const pendientes  = total - completadas;
+
+  if (statTotal)        statTotal.textContent        = total;
+  if (statCompletadas)  statCompletadas.textContent  = completadas;
+  if (badgePendientes)  badgePendientes.textContent  = pendientes;
+  if (badgeCompletadas) badgeCompletadas.textContent = completadas;
+  if (countTodas)       countTodas.textContent       = total;
+  if (countCompletadas) countCompletadas.textContent = completadas;
+}
+
+
+// ── 5. Abrir y cerrar el modal ──
+// El modal se muestra/oculta añadiendo o quitando la clase "hidden"
+
+function abrirModal() {
+  modalOverlay.classList.remove("hidden");
+  inputTarea.value = "";
+  inputTarea.focus();
+}
+
+function cerrarModal() {
+  modalOverlay.classList.add("hidden");
+}
+
+
+// ── 6. Añadir tarea ──
+function anadirTarea() {
+  const texto = inputTarea.value.trim();
+
+  // Si está vacío, ponemos borde rojo y salimos
+  if (texto === "") {
+    inputTarea.style.borderColor = "#ff6584";
+    setTimeout(() => inputTarea.style.borderColor = "", 1000);
+    return;
   }
+
+  // Creamos el objeto tarea con id único
+  const nuevaTarea = {
+    id: Date.now(),
+    texto: texto,
+    completada: false
+  };
+
+  tareas.push(nuevaTarea);
+  guardarEnLocalStorage();
+  renderizarTarea(nuevaTarea);
+  actualizarContadores();
+  cerrarModal();
 }
 
-// 5. Función para guardar en la memoria (Como escribir en un diario)
-function guardarEnLaMemoria() {
-  // Guardamos la lista convirtiéndola en un texto largo
-  localStorage.setItem('misTareasDeTaskFlow', JSON.stringify(misTareas));
+
+// ── 7. Eliminar tarea ──
+function eliminarTarea(id) {
+  tareas = tareas.filter(t => t.id !== id);
+  guardarEnLocalStorage();
+
+  const el = document.querySelector(`[data-id="${id}"]`);
+  if (el) {
+    el.classList.add("saliendo");
+    setTimeout(() => el.remove(), 300);
+  }
+
+  actualizarContadores();
 }
 
-// 6. Función para "dibujar" la tarea en el HTML
-function dibujarTareaEnPantalla(textoTarea) {
-  // Creamos una caja nueva para la tarea
-  const nuevaCaja = document.createElement('div');
-  nuevaCaja.classList.add('task-card');
 
-  // Le metemos el dibujito y el texto dentro
-  nuevaCaja.innerHTML = `
+// ── 8. Marcar/desmarcar como completada ──
+function toggleCompletada(id) {
+  const tarea = tareas.find(t => t.id === id);
+  if (!tarea) return;
+
+  tarea.completada = !tarea.completada;
+  guardarEnLocalStorage();
+
+  // Borramos y redibujamos para que se mueva a la lista correcta
+  const el = document.querySelector(`[data-id="${id}"]`);
+  if (el) el.remove();
+
+  renderizarTarea(tarea);
+  actualizarContadores();
+}
+
+
+// ── 9. Dibujar una tarea en pantalla ──
+function renderizarTarea(tarea) {
+  const li = document.createElement("li");
+  li.classList.add("task-card");
+  if (tarea.completada) li.classList.add("done");
+  li.setAttribute("data-id", tarea.id);
+
+  li.innerHTML = `
     <div class="task-row">
       <div class="task-check">✓</div>
-      <div class="task-title">${textoTarea}</div>
-      <button class="btn-borrar">🗑️ Borrar</button>
+      <div class="task-title">${escapeHTML(tarea.texto)}</div>
+      <button class="btn-eliminar" aria-label="Eliminar">🗑️</button>
     </div>
   `;
 
-  // Programamos el botón de borrar de esta tarea específica
-  nuevaCaja.querySelector('.btn-borrar').addEventListener('click', () => {
-    nuevaCaja.remove(); // Borra el dibujo de la pantalla
-    // Quitamos la tarea de nuestra lista "mental"
-    misTareas = misTareas.filter(t => t !== textoTarea);
-    guardarEnLaMemoria(); // Le decimos a la memoria que ya no está
-  });
+  // Click en ✓ → completar
+  li.querySelector(".task-check").addEventListener("click", () => toggleCompletada(tarea.id));
 
-  // Añadimos la nueva caja a la lista de tareas pendientes
-  contenedorTareas.appendChild(nuevaCaja);
-}
+  // Click en 🗑️ → eliminar
+  li.querySelector(".btn-eliminar").addEventListener("click", () => eliminarTarea(tarea.id));
 
-// 7. Función para añadir la tarea (antes era el prompt, ahora usa el input)
-function anadirTarea() {
-  const texto = inputTarea.value.trim();
-  if (texto) {
-    misTareas.push(texto);        // La guardamos en nuestra lista
-    dibujarTareaEnPantalla(texto); // La pintamos en la web
-    guardarEnLaMemoria();          // La guardamos en el navegador para siempre
-    inputTarea.value = '';         // Limpiamos el input
-    // Ocultamos el input y el botón después de añadir
-    inputTarea.style.display    = 'none';
-    btnConfirmar.style.display  = 'none';
+  // Va a la lista correcta según su estado
+  if (tarea.completada) {
+    listaCompletadas.appendChild(li);
+  } else {
+    listaPendientes.appendChild(li);
   }
 }
 
-// 8. El botón de "Nueva Tarea" ahora muestra/oculta el input (en vez de prompt)
-btnNuevaTarea.addEventListener('click', () => {
-  const visible = inputTarea.style.display === 'block';
-  inputTarea.style.display   = visible ? 'none'         : 'block';
-  btnConfirmar.style.display = visible ? 'none'         : 'inline-block';
-  if (!visible) inputTarea.focus();
+
+// ── 10. Filtrar tareas (Bonus) ──
+function filtrarTareas() {
+  const termino = inputBuscar.value.trim().toLowerCase();
+  document.querySelectorAll(".task-card").forEach(item => {
+    const titulo = item.querySelector(".task-title").textContent.toLowerCase();
+    item.style.display = titulo.includes(termino) ? "" : "none";
+  });
+}
+
+
+// ── 11. Seguridad: evitar XSS ──
+function escapeHTML(texto) {
+  const div = document.createElement("div");
+  div.appendChild(document.createTextNode(texto));
+  return div.innerHTML;
+}
+
+
+// ── 12. Arranque: cargar tareas guardadas ──
+tareas.forEach(tarea => renderizarTarea(tarea));
+actualizarContadores();
+
+
+// ── 13. Eventos ──
+btnNuevaTarea.addEventListener("click", abrirModal);
+btnAnadir.addEventListener("click", anadirTarea);
+btnCancelar.addEventListener("click", cerrarModal);
+
+// Click fuera del modal → cerrar
+modalOverlay.addEventListener("click", (e) => {
+  if (e.target === modalOverlay) cerrarModal();
 });
 
-// Botón "Añadir" → añade la tarea
-btnConfirmar.addEventListener('click', anadirTarea);
-
-// Enter en el input → también añade
-inputTarea.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') anadirTarea();
+// Enter → añadir, Escape → cerrar
+inputTarea.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") anadirTarea();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") cerrarModal();
 });
 
-// Al empezar, cargamos lo que ya teníamos guardado
-cargarDeLaMemoria();
+// Buscador en tiempo real
+if (inputBuscar) {
+  inputBuscar.addEventListener("input", filtrarTareas);
+}
