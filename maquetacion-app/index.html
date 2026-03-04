@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TaskFlow — Gestión de Tareas</title>
+  <title>TaskFlow — app2.js (versión Gemini)</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
 <header>
-  <div class="logo">✦ TaskFlow </div>
+  <div class="logo">✦ TaskFlow</div>
   <div class="header-actions">
     <button class="btn-new">+ Nueva tarea</button>
     <div class="avatar">SM</div>
@@ -43,7 +43,7 @@
 
   <main>
     <div class="main-header">
-      <h1 class="main-title">Mis tareas</h1>
+      <h1 class="main-title">Mis tareas <small style="font-size:.7rem;color:#ff6584;font-weight:400">— app2.js</small></h1>
       <div class="filter-tabs">
         <div class="tab active">Todas</div>
         <div class="tab">Activas</div>
@@ -65,32 +65,26 @@
         <div class="task-row"><div class="task-check">✓</div><div class="task-title">Diseñar mockup de la landing page</div><span class="badge badge-alta">🔴 Alta</span></div>
         <div class="task-meta"><span class="badge badge-cat">Trabajo</span><span class="badge badge-cat">Diseño</span><span class="task-date">Hoy · 18:00</span></div>
       </div>
-
       <div class="task-card" onclick="this.classList.toggle('done')">
         <div class="task-row"><div class="task-check">✓</div><div class="task-title">Revisar pull request del componente de autenticación</div><span class="badge badge-media">🟡 Media</span></div>
         <div class="task-meta"><span class="badge badge-cat">Trabajo</span><span class="badge badge-cat">Dev</span><span class="task-date">Mañana · 10:00</span></div>
       </div>
-
       <div class="task-card" onclick="this.classList.toggle('done')">
         <div class="task-row"><div class="task-check">✓</div><div class="task-title">Preparar presentación para cliente Q2</div><span class="badge badge-alta">🔴 Alta</span></div>
         <div class="task-meta"><span class="badge badge-cat">Trabajo</span><span class="task-date">Hoy · 15:00</span></div>
       </div>
-
       <div class="task-card" onclick="this.classList.toggle('done')">
         <div class="task-row"><div class="task-check">✓</div><div class="task-title">Leer capítulos 4-6 de "Clean Code"</div><span class="badge badge-baja">🟢 Baja</span></div>
         <div class="task-meta"><span class="badge badge-cat">Estudio</span><span class="task-date">Esta semana</span></div>
       </div>
-
       <div class="task-card" onclick="this.classList.toggle('done')">
         <div class="task-row"><div class="task-check">✓</div><div class="task-title">Renovar suscripción de Figma y Notion</div><span class="badge badge-media">🟡 Media</span></div>
         <div class="task-meta"><span class="badge badge-cat">Personal</span><span class="task-date">3 mar</span></div>
       </div>
-
       <div class="task-card" onclick="this.classList.toggle('done')">
         <div class="task-row"><div class="task-check">✓</div><div class="task-title">Completar ejercicios del módulo CSS Grid</div><span class="badge badge-alta">🔴 Alta</span></div>
         <div class="task-meta"><span class="badge badge-cat">Estudio</span><span class="task-date">Hoy · 20:00</span></div>
       </div>
-
       <div class="task-card" onclick="this.classList.toggle('done')">
         <div class="task-row"><div class="task-check">✓</div><div class="task-title">Hacer copia de seguridad del proyecto</div><span class="badge badge-baja">🟢 Baja</span></div>
         <div class="task-meta"><span class="badge badge-cat">Personal</span><span class="badge badge-cat">Dev</span><span class="task-date">Esta semana</span></div>
@@ -102,12 +96,10 @@
         <div class="task-row"><div class="task-check">✓</div><div class="task-title">Configurar repositorio en GitHub</div><span class="badge badge-media">🟡 Media</span></div>
         <div class="task-meta"><span class="badge badge-cat">Trabajo</span><span class="task-date">Ayer</span></div>
       </div>
-
       <div class="task-card done" onclick="this.classList.toggle('done')">
         <div class="task-row"><div class="task-check">✓</div><div class="task-title">Instalar dependencias del proyecto con npm</div><span class="badge badge-baja">🟢 Baja</span></div>
         <div class="task-meta"><span class="badge badge-cat">Dev</span><span class="task-date">28 feb</span></div>
       </div>
-
       <div class="task-card done" onclick="this.classList.toggle('done')">
         <div class="task-row"><div class="task-check">✓</div><div class="task-title">Crear wireframes de la app móvil</div><span class="badge badge-alta">🔴 Alta</span></div>
         <div class="task-meta"><span class="badge badge-cat">Diseño</span><span class="task-date">27 feb</span></div>
@@ -116,5 +108,6 @@
   </main>
 </div>
 
+<script src="app.js"></script>
 </body>
 </html>

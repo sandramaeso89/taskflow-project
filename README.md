@@ -4,8 +4,6 @@
 
 > Aplicación web para organizar tus tareas del día a día, con persistencia local y búsqueda en tiempo real.
 
-![Vista previa de TaskFlow](https://placehold.co/900x450/1a1a2e/6c63ff?text=TaskFlow+Preview)
-
 ---
 
 ## 📋 Tabla de contenidos
