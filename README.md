@@ -1,118 +1,94 @@
-# Taskflow Project
+# ✦ TaskFlow
 
-# ✦ TaskFlow — Gestión de Tareas
+Aplicación web de gestión de tareas con persistencia local, desarrollada como proyecto del módulo DAM con especialización en Ciberseguridad y Python.
 
-> Aplicación web para organizar tus tareas del día a día, con persistencia local y búsqueda en tiempo real.
-
----
-
-## 📋 Tabla de contenidos
-
-- [¿Qué hace esta app?](#-qué-hace-esta-app)
-- [Funcionalidades](#-funcionalidades)
-- [Tecnologías usadas](#-tecnologías-usadas)
-- [Estructura del proyecto](#-estructura-del-proyecto)
-- [Cómo ejecutarlo en local](#-cómo-ejecutarlo-en-local)
-- [Cómo funciona por dentro](#-cómo-funciona-por-dentro)
-- [Demo en producción](#-demo-en-producción)
+🔗 **Demo en vivo:** [taskflow-projectsandra.vercel.app](https://taskflow-projectsandra.vercel.app)
 
 ---
 
-## 🤔 ¿Qué hace esta app?
+## 📸 Vista previa
 
-TaskFlow es una app de gestión de tareas que corre **100% en el navegador**, sin servidores ni bases de datos externas. Puedes añadir tareas, marcarlas como completadas, eliminarlas y buscarlas... y todo se guarda automáticamente aunque cierres la pestaña o el navegador.
+> _App de tareas con diseño oscuro, buscador en tiempo real y separación entre tareas pendientes y completadas._
 
 ---
 
-## ✨ Funcionalidades
+## ✅ Funcionalidades
 
-| Función | Descripción |
+| Funcionalidad | Descripción |
 |---|---|
-| ➕ **Añadir tarea** | Escribe y pulsa `Añadir` o la tecla `Enter` |
-| ✅ **Completar tarea** | Pulsa el botón `✓` para marcarla como hecha |
-| 🗑️ **Eliminar tarea** | Pulsa el icono de papelera para borrarla |
-| 💾 **Persistencia** | Las tareas se guardan en LocalStorage automáticamente |
-| 🔍 **Búsqueda** | Filtra tareas en tiempo real mientras escribes |
-| 🔢 **Contador** | Muestra cuántas tareas pendientes tienes |
+| ➕ Añadir tareas | Formulario modal con validación, se abre con botón o tecla `Enter` |
+| 🗑️ Eliminar tareas | Botón de borrado por tarea, con animación de salida |
+| ✓ Completar tareas | Marca una tarea como hecha y la mueve a la sección correspondiente |
+| 💾 Persistencia | Guardado automático en `localStorage` — las tareas sobreviven al refresco |
+| 🔍 Búsqueda en tiempo real | Filtra tareas mientras escribes (Bonus) |
+| 📊 Estadísticas | Contador de total, pendientes y completadas en tiempo real |
+| 📈 Barra de progreso | Porcentaje visual de tareas completadas |
 
 ---
 
-## 🛠️ Tecnologías usadas
-
-- **HTML5** — estructura de la página
-- **CSS3** — estilos y animaciones
-- **JavaScript (Vanilla)** — lógica de la aplicación, sin frameworks
-- **LocalStorage API** — para guardar datos en el navegador del usuario
-
-> ℹ️ No se usan librerías externas ni npm. Todo funciona con tecnologías nativas del navegador.
-
----
-
-## 📁 Estructura del proyecto
+## 🗂️ Estructura del proyecto
 
 ```
 taskflow/
-├── index.html      → La estructura visual (el "esqueleto")
-├── style.css       → Los estilos y colores (la "ropa")
-├── app.js          → La lógica y comportamiento (el "cerebro")
-└── README.md       → Este archivo
+├── index.html   # Estructura HTML y estilos del modal
+├── style.css    # Variables CSS, layout, componentes y media queries
+└── app.js       # Toda la lógica: tareas, localStorage, eventos, búsqueda
 ```
+
+---
+
+## 🧠 Lógica principal (`app.js`)
+
+### Añadir una tarea
+Captura el texto del input, crea un objeto `{ id, texto, completada }`, lo empuja al array `tareas`, llama a `guardarEnLocalStorage()` y renderiza el nuevo elemento en el DOM.
+
+### Eliminar una tarea
+Filtra el array quitando el objeto con ese `id`, guarda el array actualizado en localStorage y elimina el nodo del DOM con una animación de salida.
+
+### Persistencia con localStorage
+```js
+// Guardar
+localStorage.setItem("taskflow-tareas", JSON.stringify(tareas));
+
+// Cargar al iniciar
+let tareas = JSON.parse(localStorage.getItem("taskflow-tareas")) || [];
+```
+
+### Búsqueda (Bonus)
+Escucha el evento `input` en el buscador y oculta con `display: none` las tarjetas cuyo texto no incluya el término buscado.
+
+---
+
+## 🛡️ Seguridad
+
+El texto introducido por el usuario se escapa con `escapeHTML()` antes de insertarse en el DOM, previniendo ataques XSS básicos.
 
 ---
 
 ## 🚀 Cómo ejecutarlo en local
 
-No necesitas instalar nada. Solo:
+```bash
+git clone https://github.com/sandramaeso89/taskflow
+cd taskflow
+# Abre index.html en tu navegador (no necesita servidor)
+```
 
-1. **Clona el repositorio:**
-   ```bash
-   git clone https://github.com/tu-usuario/taskflow.git
-   ```
-
-2. **Entra en la carpeta:**
-   ```bash
-   cd taskflow
-   ```
-
-3. **Abre `index.html` en tu navegador** — puedes hacer doble clic en el archivo o usar la extensión **Live Server** de VS Code para recarga automática.
+O simplemente abre `index.html` directamente en el navegador. No tiene dependencias externas.
 
 ---
 
-## 🧠 Cómo funciona por dentro
+## 🛠️ Tecnologías
 
-### LocalStorage: la "libretita" del navegador
-
-Cada vez que añades, completas o eliminas una tarea, el array de tareas se convierte en texto con `JSON.stringify()` y se guarda en LocalStorage. Al cargar la página, ese texto se recupera con `JSON.parse()` y se vuelve a dibujar en pantalla.
-
-```
-Tarea nueva → push al array → JSON.stringify → localStorage.setItem
-Al cargar   → localStorage.getItem → JSON.parse → renderizar cada tarea
-```
-
-### El flujo de una tarea
-
-```
-Usuario escribe → click en Añadir
-      ↓
-Se crea objeto { id, texto, completada: false }
-      ↓
-Se guarda en el array + LocalStorage
-      ↓
-Se "dibuja" en el DOM con renderizarTarea()
-```
-
-### Búsqueda en tiempo real
-
-El filtro **no borra nada**. Solo oculta visualmente (`display: none`) las tarjetas cuyo título no contiene el texto buscado. Al borrar la búsqueda, todo vuelve a aparecer.
+- **HTML5** — estructura semántica
+- **CSS3** — variables custom, grid/flexbox, media queries, animaciones
+- **JavaScript (Vanilla ES6+)** — sin frameworks ni librerías externas
+- **localStorage** — persistencia de datos en el navegador
 
 ---
 
-## 🌐 Demo en producción
+## 👩‍💻 Autora
 
-👉 [Ver app en Vercel](https://taskflow-tu-usuario.vercel.app)
+**Sandra Maeso** — Desarrollo de Aplicaciones Multiplataforma · Especialización en Ciberseguridad y Python
 
----
-
-## 👨‍💻 Autor
-
-Hecho con ☕ por **[Tu Nombre]**
+[![GitHub](https://img.shields.io/badge/GitHub-sandramaeso89-181717?logo=github)](https://github.com/sandramaeso89)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-sandra--maeso-0A66C2?logo=linkedin)](https://www.linkedin.com/in/sandra-maeso)

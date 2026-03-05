@@ -1,654 +1,248 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TaskFlow</title>
+  <title>TaskFlow — Sandra Maeso</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
   <style>
-    /* ── Reset & Variables ── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --color-bg:         #0d0d12;
-      --color-surface:    #15151e;
-      --color-surface2:   #1c1c28;
-      --color-border:     rgba(255,255,255,0.07);
-      --color-primary-h:  #b57bee;
-      --color-primary:    #9b5de5;
-      --color-accent:     #f15bb5;
-      --color-success:    #43d9ad;
-      --color-warning:    #ffd166;
-      --color-text:       #e8e8f0;
-      --color-muted:      #7a7a9a;
-      --radius:           14px;
-      --radius-sm:        8px;
-    }
-
-    html, body {
-      height: 100%;
-      font-family: 'Inter', sans-serif;
-      background: var(--color-bg);
-      color: var(--color-text);
-      font-size: 15px;
-      line-height: 1.5;
-    }
-
-    /* ── Fondo con textura ── */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background:
-        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(155,93,229,0.12) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 50% at 80% 80%, rgba(241,91,181,0.08) 0%, transparent 60%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* ── Modal ── */
-    .modal-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.7);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 1000;
-      backdrop-filter: blur(6px);
-      animation: fadeIn .2s ease;
-    }
-    .modal-overlay.hidden { display: none !important; }
-
-    .modal {
-      background: var(--color-surface);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 20px;
-      padding: 2rem;
-      width: 100%;
-      max-width: 440px;
-      display: flex;
-      flex-direction: column;
-      gap: 1.1rem;
-      box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(155,93,229,0.15);
-      animation: modalIn .22s cubic-bezier(.34,1.56,.64,1);
-    }
-    .modal h2 {
-      font-family: 'Inter', sans-serif;
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: #fff;
-    }
-    .modal input {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 10px;
-      padding: .8rem 1rem;
-      color: var(--color-text);
-      font-size: .95rem;
-      font-family: 'Inter', sans-serif;
-      outline: none;
-      transition: border-color .2s, box-shadow .2s;
-    }
-    .modal input:focus {
-      border-color: var(--color-primary-h);
-      box-shadow: 0 0 0 3px rgba(181,123,238,0.15);
-    }
-    .modal-actions {
-      display: flex; gap: .75rem; justify-content: flex-end;
-    }
-    .btn-cancelar {
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: var(--radius-sm);
-      padding: .6rem 1.2rem;
-      color: var(--color-muted);
-      cursor: pointer;
-      font-family: 'Inter', sans-serif;
-      font-size: .9rem;
-      transition: border-color .2s, color .2s;
-    }
-    .btn-cancelar:hover { border-color: rgba(255,255,255,0.25); color: var(--color-text); }
-
-    /* ── Header ── */
-    header {
-      position: relative; z-index: 10;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 1.1rem 2rem;
-      border-bottom: 1px solid var(--color-border);
-      background: rgba(13,13,18,0.8);
-      backdrop-filter: blur(12px);
-    }
-    .logo {
-      font-family: 'Inter', sans-serif;
-      font-weight: 800;
-      font-size: 1.2rem;
-      letter-spacing: -.01em;
-      background: linear-gradient(135deg, #c084fc, #f472b6);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .header-actions { display: flex; align-items: center; gap: 1rem; }
-
-    .btn-new {
-      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-      border: none;
-      border-radius: var(--radius-sm);
-      padding: .6rem 1.2rem;
-      color: #fff;
-      font-family: 'Inter', sans-serif;
-      font-size: .9rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: opacity .2s, transform .15s;
-      box-shadow: 0 4px 16px rgba(155,93,229,0.3);
-    }
-    .btn-new:hover { opacity: .9; transform: translateY(-1px); }
-    .btn-new:active { transform: translateY(0); }
-
-    .avatar {
-      width: 36px; height: 36px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-      display: flex; align-items: center; justify-content: center;
-      font-size: .75rem; font-weight: 700; color: #fff;
-      font-family: 'Inter', sans-serif;
-    }
-
-    /* ── Layout ── */
-    .layout {
-      position: relative; z-index: 1;
-      display: grid;
-      grid-template-columns: 240px 1fr;
-      min-height: calc(100vh - 61px);
-    }
-
-    /* ── Sidebar ── */
-    aside {
-      border-right: 1px solid var(--color-border);
-      padding: 1.5rem 1.2rem;
-      display: flex; flex-direction: column; gap: 1.8rem;
-      background: rgba(13,13,18,0.5);
-    }
-    .sidebar-section h3 {
-      font-family: 'Inter', sans-serif;
-      font-size: .65rem;
-      font-weight: 700;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      color: var(--color-muted);
-      margin-bottom: .6rem;
-    }
-    .nav-item {
-      display: flex; align-items: center; gap: .6rem;
-      padding: .5rem .75rem;
-      border-radius: var(--radius-sm);
-      font-size: .88rem;
-      color: var(--color-muted);
-      cursor: pointer;
-      transition: background .15s, color .15s;
-    }
-    .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--color-text); }
-    .nav-item.active { background: rgba(155,93,229,0.12); color: var(--color-primary-h); }
-    .nav-count {
-      margin-left: auto;
-      font-size: .72rem;
-      background: rgba(255,255,255,0.07);
-      border-radius: 20px;
-      padding: .1rem .5rem;
-      color: var(--color-muted);
-    }
-    .nav-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-
-    .progress-label {
-      display: flex; justify-content: space-between;
-      font-size: .78rem; color: var(--color-muted);
-      margin-bottom: .35rem;
-    }
-    .progress-bar {
-      height: 5px;
-      background: rgba(255,255,255,0.07);
-      border-radius: 99px;
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
-      border-radius: 99px;
-      transition: width .6s ease;
-    }
-
-    .input-buscar {
-      width: 100%;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: var(--radius-sm);
-      padding: .55rem .8rem;
-      color: var(--color-text);
-      font-size: .85rem;
-      font-family: 'Inter', sans-serif;
-      outline: none;
-      transition: border-color .2s;
-    }
-    .input-buscar:focus { border-color: var(--color-primary-h); }
-    .input-buscar::placeholder { color: var(--color-muted); }
-
-    /* ── Main ── */
-    main { padding: 2rem; overflow-y: auto; }
-
-    .main-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 1.8rem; flex-wrap: wrap; gap: 1rem;
-    }
-    .main-title {
-      font-family: 'Inter', sans-serif;
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: #fff;
-    }
-    .filter-tabs { display: flex; gap: .4rem; }
-    .tab {
-      padding: .4rem .9rem;
-      border-radius: 20px;
-      font-size: .82rem;
-      color: var(--color-muted);
-      cursor: pointer;
-      border: 1px solid transparent;
-      transition: all .2s;
-    }
-    .tab:hover { color: var(--color-text); border-color: rgba(255,255,255,0.1); }
-    .tab.active { background: rgba(155,93,229,0.15); color: var(--color-primary-h); border-color: rgba(155,93,229,0.3); }
-
-    /* ── Stats ── */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-    .stat-card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
-      padding: 1.2rem;
-      display: flex; flex-direction: column; gap: .4rem;
-      transition: border-color .2s, transform .2s;
-    }
-    .stat-card:hover { border-color: rgba(155,93,229,0.3); transform: translateY(-2px); }
-    .stat-icon { font-size: 1.3rem; }
-    .stat-num {
-      font-family: 'Inter', sans-serif;
-      font-size: 1.8rem;
-      font-weight: 800;
-      line-height: 1;
-    }
-    .stat-label { font-size: .78rem; color: var(--color-muted); }
-
-    /* ── Tasks Section ── */
-    .tasks-section h2 {
-      font-family: 'Inter', sans-serif;
-      font-size: .95rem;
-      font-weight: 700;
-      color: var(--color-muted);
-      letter-spacing: .03em;
-      display: flex; align-items: center; gap: .6rem;
-      margin-bottom: .75rem;
-    }
-    .count-badge {
-      background: rgba(255,255,255,0.07);
-      border-radius: 20px;
-      padding: .1rem .55rem;
-      font-size: .72rem;
-      font-weight: 500;
-      color: var(--color-muted);
-    }
-
-    .lista-tareas {
-      list-style: none;
-      display: flex; flex-direction: column; gap: .6rem;
-      min-height: 40px;
-    }
-
-    /* ── Task Card ── */
+    body { font-family: 'Inter', sans-serif; }
+    .task-card.saliendo { opacity: 0; transform: translateX(20px); transition: opacity .3s, transform .3s; }
+    .btn-eliminar { opacity: 0; transition: opacity 0.2s; }
+    .task-card:hover .btn-eliminar { opacity: 1; }
     .task-card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
-      padding: .85rem 1rem;
-      transition: border-color .2s, transform .15s, box-shadow .2s;
-      animation: slideIn .25s cubic-bezier(.34,1.3,.64,1);
+      background: rgb(17 24 39);
+      border: 1px solid rgb(31 41 55);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
     }
     .task-card:hover {
-      border-color: rgba(155,93,229,0.25);
-      transform: translateX(3px);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      border-color: rgb(126 34 206);
+      background: rgb(31 41 55);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.35);
     }
     .task-card.done {
-      opacity: .5;
-      border-color: rgba(255,255,255,0.04);
+      opacity: 0.5;
+      border-color: rgb(52 211 153);
+      background: rgba(52,211,153,0.05);
     }
-    .task-card.done .task-title { text-decoration: line-through; color: var(--color-muted); }
-    .task-card.done .task-check {
-      background: var(--color-success);
-      border-color: var(--color-success);
-      color: #000;
-    }
-
-    .task-row {
-      display: flex; align-items: center; gap: .85rem;
-    }
-
+    .task-card.done .task-title { text-decoration: line-through; color: rgb(107 114 128); }
+    .task-row { display: flex; align-items: center; gap: 0.75rem; }
     .task-check {
-      width: 22px; height: 22px;
-      border-radius: 6px;
-      border: 2px solid rgba(255,255,255,0.15);
+      width: 20px; height: 20px; border-radius: 50%;
+      border: 2px solid rgb(55 65 81); flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      font-size: .75rem;
-      color: transparent;
-      flex-shrink: 0;
-      transition: all .2s;
+      font-size: 0.7rem; cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
     }
-    .task-check:hover { border-color: var(--color-success); color: var(--color-success); }
-
-    .task-title {
-      font-size: .92rem;
-      color: var(--color-text);
-      flex: 1;
-    }
-
-    .btn-eliminar {
-      background: transparent;
-      border: none;
-      cursor: pointer;
-      font-size: .9rem;
-      opacity: 0;
-      transition: opacity .2s, transform .2s;
-      padding: .2rem .4rem;
-      border-radius: 6px;
-      color: var(--color-accent);
-    }
-    .task-card:hover .btn-eliminar { opacity: 1; }
-    .btn-eliminar:hover { transform: scale(1.2); background: rgba(241,91,181,0.1); }
-
-    /* ── Empty state ── */
-    .empty-state {
-      padding: 2rem 1rem;
-      text-align: center;
-      color: var(--color-muted);
-      font-size: .85rem;
-      border: 1px dashed rgba(255,255,255,0.07);
-      border-radius: var(--radius);
-    }
-
-    /* ── Animations ── */
-    @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
-    @keyframes modalIn { from { opacity: 0; transform: scale(.92) translateY(-12px) } to { opacity: 1; transform: scale(1) translateY(0) } }
-    @keyframes slideIn { from { opacity: 0; transform: translateX(-12px) } to { opacity: 1; transform: translateX(0) } }
-    .saliendo { animation: slideOut .28s ease forwards !important; }
-    @keyframes slideOut { to { opacity: 0; transform: translateX(20px); height: 0; padding: 0; margin: 0; } }
-
-    /* ── Responsive ── */
-    @media (max-width: 768px) {
-      .layout { grid-template-columns: 1fr; }
-      aside { display: none; }
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
-    }
+    .task-card.done .task-check { background: rgb(52 211 153); border-color: rgb(52 211 153); }
+    .task-title { flex: 1; font-weight: 500; font-size: 0.95rem; }
+    .btn-eliminar { background: none; border: none; cursor: pointer; font-size: 1rem; padding: 2px 4px; }
   </style>
 </head>
-<body>
 
-<!-- Modal -->
-<div id="modal-overlay" class="modal-overlay hidden">
-  <div class="modal">
-    <h2>Nueva tarea</h2>
-    <input id="input-tarea" type="text" placeholder="Ej: Revisar el proyecto..." />
-    <div class="modal-actions">
-      <button id="btn-cancelar" class="btn-cancelar">Cancelar</button>
-      <button id="btn-anadir" class="btn-new">Añadir tarea</button>
+<body class="bg-gray-950 text-gray-300 min-h-screen grid grid-rows-[auto_1fr]">
+
+  <!-- HEADER -->
+  <header class="bg-gray-900 border-b border-gray-800 px-8 py-3 flex items-center justify-between sticky top-0 z-50">
+    <div class="text-lg font-bold text-purple-300">Task<span class="font-normal text-gray-500">Flow</span></div>
+
+    <div class="flex items-center gap-3">
+      <div class="relative">
+        <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 text-sm">🔍</span>
+        <input
+          type="text"
+          id="input-buscar"
+          placeholder="Buscar tarea…"
+          class="bg-gray-800 border border-gray-700 rounded-lg pl-8 pr-3 py-1.5 text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition duration-200 w-56"
+        />
+      </div>
+
+      <button
+        id="btn-tema"
+        class="text-lg px-2.5 py-1 rounded-lg border border-gray-700 hover:border-purple-400 hover:text-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
+        title="Alternar modo oscuro"
+      >🌙</button>
+
+      <button
+        id="btn-nueva-tarea"
+        class="bg-purple-700 hover:bg-purple-500 active:scale-95 text-white text-sm font-semibold px-4 py-1.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 transition duration-200"
+      >+ Nueva tarea</button>
+
+      <div class="w-9 h-9 rounded-full bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center font-bold text-xs text-white cursor-pointer select-none">SM</div>
+    </div>
+  </header>
+
+  <!-- LAYOUT -->
+  <div class="flex min-h-0">
+
+    <!-- SIDEBAR -->
+    <aside class="w-56 flex-shrink-0 bg-gray-900 border-r border-gray-800 p-5 flex flex-col gap-6">
+      <div>
+        <h3 class="text-xs text-gray-500 uppercase tracking-widest mb-3">Vistas</h3>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-sm text-purple-300 bg-gray-800 mb-1 transition duration-200 hover:bg-gray-700">
+          <span>📋</span> Todas
+          <span id="count-todas" class="ml-auto bg-gray-700 text-gray-400 text-xs rounded-full px-2 py-0.5">0</span>
+        </div>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-sm text-gray-400 transition duration-200 hover:bg-gray-800 hover:text-gray-200">
+          <span>✅</span> Completadas
+          <span id="count-completadas" class="ml-auto bg-gray-800 text-gray-500 text-xs rounded-full px-2 py-0.5">0</span>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="text-xs text-gray-500 uppercase tracking-widest mb-3">Progreso</h3>
+        <div class="flex justify-between text-xs text-gray-500 mb-1.5">
+          <span>Completadas</span>
+          <span id="pct-label">0%</span>
+        </div>
+        <div class="h-1.5 rounded-full bg-gray-800 overflow-hidden">
+          <div id="progress-fill" class="h-full rounded-full bg-gradient-to-r from-purple-600 to-emerald-400 transition-all duration-500" style="width:0%"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="flex-1 p-8 overflow-y-auto">
+
+      <div class="flex items-center justify-between mb-8 flex-wrap gap-3">
+        <h1 class="text-2xl font-bold">Mis <span class="text-purple-300">Tareas</span></h1>
+        <div class="flex gap-1 bg-gray-900 border border-gray-800 rounded-lg p-1">
+          <button data-filter="todas"       class="tab px-3 py-1 rounded-md text-xs font-medium bg-purple-700 text-white transition duration-200">Todas</button>
+          <button data-filter="pendientes"  class="tab px-3 py-1 rounded-md text-xs font-medium text-gray-400 hover:text-gray-200 transition duration-200">Pendientes</button>
+          <button data-filter="completadas" class="tab px-3 py-1 rounded-md text-xs font-medium text-gray-400 hover:text-gray-200 transition duration-200">Completadas</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="flex gap-4 mb-8 flex-wrap">
+        <div class="flex-1 min-w-[100px] bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-1 hover:-translate-y-1 transition duration-200">
+          <span class="text-xl">📝</span>
+          <span id="stat-total" class="text-3xl font-bold">0</span>
+          <span class="text-xs text-gray-500">Total</span>
+        </div>
+        <div class="flex-1 min-w-[100px] bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-1 hover:-translate-y-1 transition duration-200">
+          <span class="text-xl">⏳</span>
+          <span id="stat-pendientes" class="text-3xl font-bold">0</span>
+          <span class="text-xs text-gray-500">Pendientes</span>
+        </div>
+        <div class="flex-1 min-w-[100px] bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-1 hover:-translate-y-1 transition duration-200">
+          <span class="text-xl">✅</span>
+          <span id="stat-completadas" class="text-3xl font-bold">0</span>
+          <span class="text-xs text-gray-500">Completadas</span>
+        </div>
+      </div>
+
+      <!-- Pendientes -->
+      <div id="section-pendientes" class="mb-8">
+        <h2 class="text-base font-semibold mb-4 flex items-center gap-2">
+          Pendientes
+          <span id="badge-pendientes" class="bg-gray-800 text-gray-400 text-xs rounded-full px-2.5 py-0.5 font-normal">0</span>
+        </h2>
+        <ul id="lista-pendientes">
+          <li id="empty-pendientes" class="text-center py-8 text-gray-600">
+            <span class="text-3xl block mb-2">🎉</span>¡Sin tareas pendientes!
+          </li>
+        </ul>
+      </div>
+
+      <!-- Completadas -->
+      <div id="section-completadas">
+        <h2 class="text-base font-semibold mb-4 flex items-center gap-2">
+          Completadas
+          <span id="badge-completadas" class="bg-gray-800 text-gray-400 text-xs rounded-full px-2.5 py-0.5 font-normal">0</span>
+        </h2>
+        <ul id="lista-completadas">
+          <li id="empty-completadas" class="text-center py-8 text-gray-600">
+            <span class="text-3xl block mb-2">📭</span>Nada completado aún.
+          </li>
+        </ul>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- MODAL -->
+  <div id="modal-overlay" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[200]">
+    <div class="bg-gray-900 border border-gray-700 rounded-xl p-8 w-[min(420px,92vw)] shadow-2xl">
+      <h3 class="text-lg font-bold text-purple-300 mb-5">Nueva tarea</h3>
+      <input
+        type="text"
+        id="input-tarea"
+        placeholder="¿Qué tienes que hacer?"
+        maxlength="140"
+        class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-gray-200 placeholder-gray-600 mb-5 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition duration-200"
+      />
+      <div class="flex gap-3 justify-end">
+        <button
+          id="btn-cancelar"
+          class="bg-transparent border border-gray-700 text-gray-400 text-sm px-4 py-2 rounded-lg hover:border-gray-400 hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-200"
+        >Cancelar</button>
+        <button
+          id="btn-anadir"
+          class="bg-purple-700 hover:bg-purple-500 active:scale-95 text-white text-sm font-semibold px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 transition duration-200"
+        >Añadir tarea</button>
+      </div>
     </div>
   </div>
-</div>
 
-<header>
-  <div class="logo">✦ TaskFlow</div>
-  <div class="header-actions">
-    <button id="btn-nueva-tarea" class="btn-new">+ Nueva tarea</button>
-    <div class="avatar">SM</div>
-  </div>
-</header>
+  <script src="app.js"></script>
 
-<div class="layout">
-  <aside>
-    <div class="sidebar-section">
-      <h3>Vistas</h3>
-      <div class="nav-item active">📋 Todas <span class="nav-count" id="count-todas">0</span></div>
-      <div class="nav-item">📅 Hoy <span class="nav-count">4</span></div>
-      <div class="nav-item">⭐ Importantes <span class="nav-count">3</span></div>
-      <div class="nav-item">✅ Completadas <span class="nav-count" id="count-completadas">0</span></div>
-    </div>
-    <div class="sidebar-section">
-      <h3>Categorías</h3>
-      <div class="nav-item"><span class="nav-dot" style="background:#9b5de5"></span> Trabajo <span class="nav-count">5</span></div>
-      <div class="nav-item"><span class="nav-dot" style="background:#f15bb5"></span> Personal <span class="nav-count">4</span></div>
-      <div class="nav-item"><span class="nav-dot" style="background:#43d9ad"></span> Estudio <span class="nav-count">3</span></div>
-    </div>
-    <div class="sidebar-section">
-      <h3>Progreso</h3>
-      <div class="progress-label"><span>Semana</span><span>58%</span></div>
-      <div class="progress-bar"><div class="progress-fill" style="width:58%"></div></div>
-      <div class="progress-label" style="margin-top:.6rem"><span>Mes</span><span>73%</span></div>
-      <div class="progress-bar"><div class="progress-fill" style="width:73%"></div></div>
-    </div>
-    <div class="sidebar-section">
-      <h3>Buscar</h3>
-      <input id="input-buscar" type="text" placeholder="Buscar tarea..." class="input-buscar" />
-    </div>
-  </aside>
+  <script>
+    const progressFill = document.getElementById("progress-fill");
+    const pctLabel     = document.getElementById("pct-label");
+    const statPend     = document.getElementById("stat-pendientes");
 
-  <main>
-    <div class="main-header">
-      <h1 class="main-title">Mis tareas</h1>
-      <div class="filter-tabs">
-        <div class="tab active" data-filter="todas">Todas</div>
-        <div class="tab" data-filter="activas">Activas</div>
-        <div class="tab" data-filter="completadas">Completadas</div>
-      </div>
-    </div>
+    const _orig = actualizarContadores;
+    actualizarContadores = function() {
+      _orig();
+      const total       = tareas.length;
+      const completadas = tareas.filter(t => t.completada).length;
+      const pct         = total > 0 ? Math.round((completadas / total) * 100) : 0;
+      if (progressFill) progressFill.style.width = pct + "%";
+      if (pctLabel)     pctLabel.textContent      = pct + "%";
+      if (statPend)     statPend.textContent       = total - completadas;
+      toggleEmpty("lista-pendientes",  "empty-pendientes");
+      toggleEmpty("lista-completadas", "empty-completadas");
+    };
 
-    <section class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon">🗂️</div>
-        <div class="stat-num" id="stat-total" style="color:var(--color-primary-h)">0</div>
-        <div class="stat-label">Total tareas</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">⚠️</div>
-        <div class="stat-num" style="color:var(--color-accent)">3</div>
-        <div class="stat-label">Alta prioridad</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">✅</div>
-        <div class="stat-num" id="stat-completadas" style="color:var(--color-success)">0</div>
-        <div class="stat-label">Completadas</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">📅</div>
-        <div class="stat-num" style="color:var(--color-warning)">4</div>
-        <div class="stat-label">Para hoy</div>
-      </div>
-    </section>
+    function toggleEmpty(listaId, emptyId) {
+      const lista = document.getElementById(listaId);
+      const empty = document.getElementById(emptyId);
+      if (!lista || !empty) return;
+      empty.style.display = lista.querySelectorAll(".task-card").length > 0 ? "none" : "";
+    }
 
-    <section class="tasks-section">
-      <h2>Pendientes <span class="count-badge" id="badge-pendientes">0</span></h2>
-      <ul id="lista-pendientes" class="lista-tareas"></ul>
-
-      <h2 style="margin-top:2rem">Completadas <span class="count-badge" id="badge-completadas">0</span></h2>
-      <ul id="lista-completadas" class="lista-tareas"></ul>
-    </section>
-  </main>
-</div>
-
-<script>
-// ── Elementos ──
-const btnNuevaTarea    = document.getElementById("btn-nueva-tarea");
-const modalOverlay     = document.getElementById("modal-overlay");
-const inputTarea       = document.getElementById("input-tarea");
-const btnAnadir        = document.getElementById("btn-anadir");
-const btnCancelar      = document.getElementById("btn-cancelar");
-const listaPendientes  = document.getElementById("lista-pendientes");
-const listaCompletadas = document.getElementById("lista-completadas");
-const inputBuscar      = document.getElementById("input-buscar");
-const statTotal        = document.getElementById("stat-total");
-const statCompletadas  = document.getElementById("stat-completadas");
-const badgePendientes  = document.getElementById("badge-pendientes");
-const badgeCompletadas = document.getElementById("badge-completadas");
-const countTodas       = document.getElementById("count-todas");
-const countCompletadas = document.getElementById("count-completadas");
-
-// ── Estado en memoria (sin localStorage) ──
-let tareas = [];
-
-function guardar() {
-  try { localStorage.setItem("taskflow-tareas", JSON.stringify(tareas)); } catch(e) {}
-}
-
-function cargar() {
-  try { tareas = JSON.parse(localStorage.getItem("taskflow-tareas")) || []; } catch(e) { tareas = []; }
-}
-
-// ── Contadores ──
-function actualizarContadores() {
-  const total       = tareas.length;
-  const completadas = tareas.filter(t => t.completada).length;
-  const pendientes  = total - completadas;
-
-  statTotal.textContent        = total;
-  statCompletadas.textContent  = completadas;
-  badgePendientes.textContent  = pendientes;
-  badgeCompletadas.textContent = completadas;
-  countTodas.textContent       = total;
-  countCompletadas.textContent = completadas;
-}
-
-// ── Modal ──
-function abrirModal() {
-  modalOverlay.classList.remove("hidden");
-  inputTarea.value = "";
-  setTimeout(() => inputTarea.focus(), 50);
-}
-
-function cerrarModal() {
-  modalOverlay.classList.add("hidden");
-}
-
-// ── Añadir ──
-function anadirTarea() {
-  const texto = inputTarea.value.trim();
-  if (!texto) {
-    inputTarea.style.borderColor = "#f15bb5";
-    inputTarea.style.boxShadow   = "0 0 0 3px rgba(241,91,181,0.2)";
-    setTimeout(() => {
-      inputTarea.style.borderColor = "";
-      inputTarea.style.boxShadow   = "";
-    }, 1200);
-    return;
-  }
-
-  const nuevaTarea = { id: Date.now(), texto, completada: false };
-  tareas.push(nuevaTarea);
-  guardar();
-  renderizarTarea(nuevaTarea);
-  actualizarContadores();
-  cerrarModal();
-}
-
-// ── Eliminar ──
-function eliminarTarea(id) {
-  tareas = tareas.filter(t => t.id !== id);
-  guardar();
-  const el = document.querySelector(`[data-id="${id}"]`);
-  if (el) {
-    el.classList.add("saliendo");
-    setTimeout(() => { el.remove(); actualizarContadores(); }, 300);
-  } else {
-    actualizarContadores();
-  }
-}
-
-// ── Toggle completada ──
-function toggleCompletada(id) {
-  const tarea = tareas.find(t => t.id === id);
-  if (!tarea) return;
-  tarea.completada = !tarea.completada;
-  guardar();
-  const el = document.querySelector(`[data-id="${id}"]`);
-  if (el) el.remove();
-  renderizarTarea(tarea);
-  actualizarContadores();
-}
-
-// ── Escapar HTML ──
-function escapeHTML(texto) {
-  const d = document.createElement("div");
-  d.appendChild(document.createTextNode(texto));
-  return d.innerHTML;
-}
-
-// ── Render tarea ──
-function renderizarTarea(tarea) {
-  const li = document.createElement("li");
-  li.className = "task-card" + (tarea.completada ? " done" : "");
-  li.setAttribute("data-id", tarea.id);
-
-  li.innerHTML = `
-    <div class="task-row">
-      <div class="task-check">${tarea.completada ? "✓" : ""}</div>
-      <div class="task-title">${escapeHTML(tarea.texto)}</div>
-      <button class="btn-eliminar" aria-label="Eliminar">🗑️</button>
-    </div>
-  `;
-
-  li.querySelector(".task-check").addEventListener("click", () => toggleCompletada(tarea.id));
-  li.querySelector(".btn-eliminar").addEventListener("click", () => eliminarTarea(tarea.id));
-
-  if (tarea.completada) listaCompletadas.appendChild(li);
-  else listaPendientes.appendChild(li);
-}
-
-// ── Filtrar ──
-function filtrarTareas() {
-  const termino = inputBuscar ? inputBuscar.value.trim().toLowerCase() : "";
-  document.querySelectorAll(".task-card").forEach(item => {
-    const titulo = item.querySelector(".task-title").textContent.toLowerCase();
-    item.style.display = titulo.includes(termino) ? "" : "none";
-  });
-}
-
-// ── Tabs de filtro ──
-document.querySelectorAll(".tab").forEach(tab => {
-  tab.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    tab.classList.add("active");
-    const filter = tab.dataset.filter;
-    document.querySelectorAll(".task-card").forEach(card => {
-      if (filter === "todas") card.style.display = "";
-      else if (filter === "activas") card.style.display = card.classList.contains("done") ? "none" : "";
-      else card.style.display = card.classList.contains("done") ? "" : "none";
+    // Filtros
+    document.querySelectorAll(".tab").forEach(tab => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(t => {
+          t.classList.remove("bg-purple-700", "text-white");
+          t.classList.add("text-gray-400");
+        });
+        tab.classList.add("bg-purple-700", "text-white");
+        tab.classList.remove("text-gray-400");
+        const filter = tab.dataset.filter;
+        document.getElementById("section-pendientes").style.display  = filter === "completadas" ? "none" : "";
+        document.getElementById("section-completadas").style.display = filter === "pendientes"  ? "none" : "";
+      });
     });
-  });
-});
 
-// ── Eventos ──
-btnNuevaTarea.addEventListener("click", abrirModal);
-btnAnadir.addEventListener("click", anadirTarea);
-btnCancelar.addEventListener("click", cerrarModal);
-modalOverlay.addEventListener("click", e => { if (e.target === modalOverlay) cerrarModal(); });
-inputTarea.addEventListener("keydown", e => { if (e.key === "Enter") anadirTarea(); });
-document.addEventListener("keydown", e => { if (e.key === "Escape") cerrarModal(); });
-if (inputBuscar) inputBuscar.addEventListener("input", filtrarTareas);
+    // Modo oscuro
+    const btnTema = document.getElementById("btn-tema");
+    btnTema.addEventListener("click", () => {
+      document.documentElement.classList.toggle("dark");
+      btnTema.textContent = document.documentElement.classList.contains("dark") ? "🌙" : "☀️";
+    });
 
-// ── Arranque ──
-cargar();
-tareas.forEach(t => renderizarTarea(t));
-actualizarContadores();
-</script>
+    actualizarContadores();
+  </script>
 </body>
 </html>
