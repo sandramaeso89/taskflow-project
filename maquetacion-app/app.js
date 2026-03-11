@@ -44,6 +44,14 @@ let filtroActivo = "todas";
 let contadorIdTarea = 0;
 let etiquetaActiva = null;
 
+// Tareas de ejemplo para primer uso
+const TAREAS_DE_EJEMPLO = [
+  crearTarea("Configurar entorno de desarrollo #setup #work"),
+  crearTarea("Diseñar estructura inicial de componentes #frontend"),
+  crearTarea("Anotar ideas rápidas de mejoras #personal #inbox"),
+  crearTarea("Revisar tareas completadas esta semana #review"),
+];
+
 // ── 1.1 Utilidades genéricas ──
 
 /**
@@ -655,6 +663,10 @@ function inicializarEventos() {
 function inicializarTaskFlow() {
   if (!validarDOMRequerido()) return;
   tareas = cargarTareasPersistidas();
+  if (tareas.length === 0) {
+    tareas = [...TAREAS_DE_EJEMPLO];
+    guardarTareasEnLocalStorage(tareas);
+  }
   tareas.forEach((tarea) => renderizarTareaEnLista(tarea));
   actualizarContadores();
   aplicarFiltroDeEstado("todas");
