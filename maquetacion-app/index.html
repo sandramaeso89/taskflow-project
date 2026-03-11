@@ -194,55 +194,5 @@
   </div>
 
   <script src="app.js"></script>
-
-  <script>
-    const progressFill = document.getElementById("progress-fill");
-    const pctLabel     = document.getElementById("pct-label");
-    const statPend     = document.getElementById("stat-pendientes");
-
-    const _orig = actualizarContadores;
-    actualizarContadores = function() {
-      _orig();
-      const total       = tareas.length;
-      const completadas = tareas.filter(t => t.completada).length;
-      const pct         = total > 0 ? Math.round((completadas / total) * 100) : 0;
-      if (progressFill) progressFill.style.width = pct + "%";
-      if (pctLabel)     pctLabel.textContent      = pct + "%";
-      if (statPend)     statPend.textContent       = total - completadas;
-      toggleEmpty("lista-pendientes",  "empty-pendientes");
-      toggleEmpty("lista-completadas", "empty-completadas");
-    };
-
-    function toggleEmpty(listaId, emptyId) {
-      const lista = document.getElementById(listaId);
-      const empty = document.getElementById(emptyId);
-      if (!lista || !empty) return;
-      empty.style.display = lista.querySelectorAll(".task-card").length > 0 ? "none" : "";
-    }
-
-    // Filtros
-    document.querySelectorAll(".tab").forEach(tab => {
-      tab.addEventListener("click", () => {
-        document.querySelectorAll(".tab").forEach(t => {
-          t.classList.remove("bg-purple-700", "text-white");
-          t.classList.add("text-gray-400");
-        });
-        tab.classList.add("bg-purple-700", "text-white");
-        tab.classList.remove("text-gray-400");
-        const filter = tab.dataset.filter;
-        document.getElementById("section-pendientes").style.display  = filter === "completadas" ? "none" : "";
-        document.getElementById("section-completadas").style.display = filter === "pendientes"  ? "none" : "";
-      });
-    });
-
-    // Modo oscuro
-    const btnTema = document.getElementById("btn-tema");
-    btnTema.addEventListener("click", () => {
-      document.documentElement.classList.toggle("dark");
-      btnTema.textContent = document.documentElement.classList.contains("dark") ? "🌙" : "☀️";
-    });
-
-    actualizarContadores();
-  </script>
 </body>
 </html>
