@@ -361,12 +361,28 @@ function aplicarFiltroDeEstado(nuevoFiltro) {
 
 /**
  * Alterna el modo oscuro / claro y actualiza el icono del botón.
+ * Además cambia clases de fondo/texto del body para que el cambio sea visible
+ * incluso sin depender de variantes `dark:` de Tailwind.
  */
 function alternarTema() {
   if (!btnTema) return;
+
   document.documentElement.classList.toggle("dark");
   const esOscuro = document.documentElement.classList.contains("dark");
   btnTema.textContent = esOscuro ? "🌙" : "☀️";
+
+  const { body } = document;
+  if (!body) return;
+
+  // Tema oscuro (por defecto)
+  if (esOscuro) {
+    body.classList.add("bg-gray-950", "text-gray-300");
+    body.classList.remove("bg-white", "text-gray-900");
+  } else {
+    // Tema claro
+    body.classList.remove("bg-gray-950", "text-gray-300");
+    body.classList.add("bg-white", "text-gray-900");
+  }
 }
 
 // ── 9. Inicialización de la aplicación ──
