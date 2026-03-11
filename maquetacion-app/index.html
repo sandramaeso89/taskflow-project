@@ -112,13 +112,18 @@
     <!-- MAIN -->
     <main class="flex-1 p-8 overflow-y-auto">
 
-      <div class="flex items-center justify-between mb-8 flex-wrap gap-3">
+      <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
         <h1 class="text-2xl font-bold">Mis <span class="text-purple-300">Tareas</span></h1>
         <div class="flex gap-1 bg-gray-900 border border-gray-800 rounded-lg p-1">
           <button data-filter="todas"       class="tab px-3 py-1 rounded-md text-xs font-medium bg-purple-700 text-white transition duration-200">Todas</button>
           <button data-filter="pendientes"  class="tab px-3 py-1 rounded-md text-xs font-medium text-gray-400 hover:text-gray-200 transition duration-200">Pendientes</button>
           <button data-filter="completadas" class="tab px-3 py-1 rounded-md text-xs font-medium text-gray-400 hover:text-gray-200 transition duration-200">Completadas</button>
         </div>
+      </div>
+
+      <div class="mb-6">
+        <h3 class="text-xs text-gray-500 uppercase tracking-widest mb-2">Etiquetas</h3>
+        <div id="filtro-etiquetas" class="flex flex-wrap gap-2 text-xs text-gray-400"></div>
       </div>
 
       <!-- Stats -->

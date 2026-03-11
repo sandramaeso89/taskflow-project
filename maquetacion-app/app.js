@@ -18,6 +18,7 @@ const btnCancelarModal   = document.getElementById("btn-cancelar");
 const listaPendientes    = document.getElementById("lista-pendientes");
 const listaCompletadas   = document.getElementById("lista-completadas");
 const inputBuscar        = document.getElementById("input-buscar");
+const contenedorFiltrosEtiquetas = document.getElementById("filtro-etiquetas");
 const sectionPendientes  = document.getElementById("section-pendientes");
 const sectionCompletadas = document.getElementById("section-completadas");
 const emptyPendientes    = document.getElementById("empty-pendientes");
@@ -40,6 +41,7 @@ const labelProgreso      = document.getElementById("pct-label");
 let tareas = [];
 let filtroActivo = "todas";
 let contadorIdTarea = 0;
+let etiquetaActiva = null;
 
 // ── 1.1 Utilidades genéricas ──
 
@@ -275,14 +277,32 @@ function alternarTareaCompletada(idTarea) {
 
   const elemento = document.querySelector(`[data-id="${idTarea}"]`);
   if (elemento) {
-    elemento.remove();
+    elemento.classList.toggle(CLASE_DONE, tarea.completada);
+
+    if (tarea.completada && listaCompletadas) {
+      listaCompletadas.appendChild(elemento);
+    } else if (listaPendientes) {
+      listaPendientes.appendChild(elemento);
+    }
   }
 
-  renderizarTareaEnLista(tarea);
   actualizarContadores();
+  actualizarChipsHashtag();
+  aplicarFiltrosCombinados();
 }
 
 // ── 6. Renderizado de tareas ──
+
+/**
+ * Extrae hashtags (sin el símbolo #) de un texto.
+ * @param {string} texto
+ * @returns {string[]}
+ */
+function extraerHashtags(texto) {
+  const coincidencias = texto.match(/#([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ_]+)/g);
+  if (!coincidencias) return [];
+  return coincidencias.map((tag) => tag.slice(1).toLowerCase());
+}
 
 /**
  * Escapa un texto para evitar inyección de HTML en el DOM.
@@ -307,6 +327,22 @@ function crearElementoTarea(tarea) {
     li.classList.add(CLASE_DONE);
   }
   li.dataset.id = String(tarea.id);
+  const hashtags = extraerHashtags(tarea.texto);
+  li.dataset.hashtags = hashtags.join(" ");
+
+  const chipsHTML =
+    hashtags.length > 0
+      ? `<div class="mt-1 flex flex-wrap gap-1 text-[10px] text-gray-500">
+          ${hashtags
+            .map(
+              (tag) =>
+                `<span class="px-2 py-0.5 rounded-full bg-gray-800 border border-gray-700">#${escapeHTML(
+                  tag
+                )}</span>`
+            )
+            .join("")}
+        </div>`
+      : "";
 
   li.innerHTML = `
     <div class="task-row">
@@ -314,6 +350,7 @@ function crearElementoTarea(tarea) {
       <div class="task-title">${escapeHTML(tarea.texto)}</div>
       <button class="btn-eliminar" aria-label="Eliminar tarea">🗑️</button>
     </div>
+    ${chipsHTML}
   `;
 
   const botonCheck = li.querySelector(".task-check");
@@ -342,29 +379,117 @@ function renderizarTareaEnLista(tarea) {
   } else if (listaPendientes) {
     listaPendientes.appendChild(elemento);
   }
+
+   actualizarChipsHashtag();
 }
 
 // ── 7. Buscador y filtros ──
 
 /**
- * Aplica el filtro de búsqueda por texto sobre las tareas visibles.
+ * Devuelve los términos de búsqueda normalizados a partir del input.
+ * @returns {string[]}
  */
-function filtrarTareasPorTexto() {
-  if (!inputBuscar) return;
-  const termino = inputBuscar.value.trim().toLowerCase();
+function obtenerTerminosBusqueda() {
+  if (!inputBuscar) return [];
+  return inputBuscar.value
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((termino) => termino.length > 0);
+}
+
+/**
+ * Aplica los filtros combinados de texto y etiquetas sobre las tareas visibles.
+ */
+function aplicarFiltrosCombinados() {
+  const terminos = obtenerTerminosBusqueda();
 
   document.querySelectorAll(`.${CLASE_TASK_CARD}`).forEach((item) => {
     const tituloElemento = item.querySelector(".task-title");
     if (!tituloElemento) return;
     const titulo = tituloElemento.textContent.toLowerCase();
-    item.style.display = titulo.includes(termino) ? "" : "none";
+    const hashtagsArray = (item.dataset.hashtags || "")
+      .toLowerCase()
+      .split(" ")
+      .filter(Boolean);
+    const hashtagsDataset = new Set(hashtagsArray);
+
+    const coincideTextoYHashtags = terminos.every((termino) => {
+      if (termino.startsWith("#")) {
+        const etiquetaBuscada = termino.slice(1);
+        return hashtagsDataset.has(etiquetaBuscada);
+      }
+      return titulo.includes(termino);
+    });
+
+    const coincideEtiquetaActiva =
+      !etiquetaActiva || hashtagsDataset.has(etiquetaActiva);
+
+    const debeMostrarse = coincideTextoYHashtags && coincideEtiquetaActiva;
+    item.style.display = debeMostrarse ? "" : "none";
   });
+}
+
+/**
+ * Aplica el filtro de búsqueda por texto de forma retardada.
+ */
+function filtrarTareasPorTexto() {
+  aplicarFiltrosCombinados();
 }
 
 const filtrarTareasPorTextoDebounced = crearDebounce(
   filtrarTareasPorTexto,
   DURACION_DEBOUNCE_BUSCADOR_MS
 );
+
+/**
+ * Construye o actualiza los chips de hashtags disponibles según las tareas actuales.
+ */
+function actualizarChipsHashtag() {
+  if (!contenedorFiltrosEtiquetas) return;
+
+  const setHashtags = new Set();
+  tareas.forEach((tarea) => {
+    extraerHashtags(tarea.texto).forEach((tag) => setHashtags.add(tag));
+  });
+
+  contenedorFiltrosEtiquetas.innerHTML = "";
+
+  if (setHashtags.size === 0) {
+    etiquetaActiva = null;
+    return;
+  }
+
+  const botonTodas = document.createElement("button");
+  botonTodas.textContent = "Todas";
+  botonTodas.className =
+    "px-3 py-1 rounded-full text-xs border border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-400 transition";
+  if (!etiquetaActiva) {
+    botonTodas.classList.add("bg-gray-800", "text-gray-200");
+  }
+  botonTodas.addEventListener("click", () => {
+    etiquetaActiva = null;
+    actualizarChipsHashtag();
+    aplicarFiltrosCombinados();
+  });
+  contenedorFiltrosEtiquetas.appendChild(botonTodas);
+
+  setHashtags.forEach((tag) => {
+    const boton = document.createElement("button");
+    boton.textContent = `#${tag}`;
+    boton.dataset.tag = tag;
+    boton.className =
+      "px-3 py-1 rounded-full text-xs border border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-400 transition";
+    if (etiquetaActiva === tag) {
+      boton.classList.add("bg-purple-700", "text-white", "border-purple-400");
+    }
+    boton.addEventListener("click", () => {
+      etiquetaActiva = etiquetaActiva === tag ? null : tag;
+      actualizarChipsHashtag();
+      aplicarFiltrosCombinados();
+    });
+    contenedorFiltrosEtiquetas.appendChild(boton);
+  });
+}
 
 /**
  * Marca visualmente la pestaña activa y oculta/enseña secciones según filtro.

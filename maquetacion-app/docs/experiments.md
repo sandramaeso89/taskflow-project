@@ -374,4 +374,290 @@ MCP transforma el chat de Cursor de una herramienta que responde sobre el códig
 
 ---
 
+## Experimento 4: Problemas de programación con y sin IA
+
+- **Fecha:** 11/03/2026
+- **Herramienta usada:** Claude (Sonnet) para la parte con IA
+- **Objetivo:** Comparar tiempo, calidad de código y comprensión al resolver los mismos problemas con y sin ayuda de IA
+
+---
+
+### Parte A — Tres problemas genéricos de JavaScript
+
+---
+
+#### Problema 1 — Array de números pares ordenados
+
+**Enunciado:** Escribe una función que reciba un array de números y devuelva un nuevo array solo con los números pares, ordenados de mayor a menor.
+Ejemplo: `[3, 8, 1, 4, 7, 2, 6]` → `[8, 6, 4, 2]`
+
+---
+
+**✍️ Solución propia (sin IA)**
+
+```javascript
+function obtenerParesOrdenados(arr) {
+  return arr
+    .filter(num => num % 2 === 0)   // quedarse solo con los pares
+    .sort((a, b) => b - a);         // ordenar de mayor a menor
+}
+
+const numeros = [3, 8, 1, 4, 7, 2, 6];
+console.log(obtenerParesOrdenados(numeros)); // [8, 6, 4, 2]
+```
+
+---
+
+**🤖 Solución con IA**
+
+Prompt usado:
+> *"Actúa como un desarrollador senior de JavaScript. Escribe una función que reciba un array de números y devuelva solo los pares, ordenados de mayor a menor. Restricciones: JavaScript vanilla, sin librerías, con JSDoc y comentarios explicando cada paso."*
+
+```javascript
+/**
+ * Devuelve un nuevo array solo con los números pares,
+ * ordenados de mayor a menor.
+ *
+ * @param {number[]} numeros - Array de números de entrada.
+ * @returns {number[]} Array con los números pares ordenados de mayor a menor.
+ */
+function obtenerParesOrdenadosDesc(numeros) {
+  // Filtrar el array original dejando solo los números pares
+  const pares = numeros.filter((numero) => numero % 2 === 0);
+  // Ordenar los pares de mayor a menor usando sort con comparación numérica descendente
+  const paresOrdenadosDesc = pares.sort((a, b) => b - a);
+  // Devolver el nuevo array ya filtrado y ordenado
+  return paresOrdenadosDesc;
+}
+```
+
+---
+
+**📊 Comparativa — Problema 1**
+
+| Criterio | Sin IA | Con IA |
+|---|---|---|
+| Tiempo | ~3 min | ~1 min |
+| Líneas de código | 5 | 9 |
+| JSDoc | ❌ | ✅ |
+| Comentarios | Mínimos | Detallados en cada paso |
+| Manejo de array vacío | ❌ No contemplado | ❌ No contemplado |
+| Lógica correcta | ✅ | ✅ |
+
+**Observación:** ambas soluciones son funcionalmente idénticas. La IA usó variables intermedias (`pares`, `paresOrdenadosDesc`) en lugar de encadenar, lo que es más legible para quien aprende. Añadió JSDoc sin que se lo pidiera explícitamente gracias al rol de "desarrollador senior".
+
+---
+
+#### Problema 2 — Conteo de letras en un string
+
+**Enunciado:** Escribe una función que reciba un string y devuelva cuántas veces aparece cada letra, ignorando espacios y mayúsculas.
+Ejemplo: `"Hola Mundo"` → `{ h:1, o:2, l:1, a:1, m:1, u:1, n:1, d:1 }`
+
+---
+
+**✍️ Solución propia (sin IA)**
+
+```javascript
+function contarLetras(texto) {
+  const resultado = {};
+  texto
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .split("")
+    .forEach(letra => {
+      resultado[letra] = (resultado[letra] || 0) + 1;
+    });
+  return resultado;
+}
+
+console.log(contarLetras("Hola Mundo"));
+// { h: 1, o: 2, l: 1, a: 1, m: 1, u: 1, n: 1, d: 1 }
+```
+
+---
+
+**🤖 Solución con IA**
+
+```javascript
+/**
+ * Devuelve un objeto con el conteo de cada letra del string,
+ * ignorando espacios y sin diferenciar entre mayúsculas y minúsculas.
+ *
+ * @param {string} texto - Texto de entrada a analizar.
+ * @returns {Object.<string, number>} Objeto donde las claves son letras y los valores su conteo.
+ */
+function contarLetras(texto) {
+  const normalizado = texto.toLowerCase();
+  const conteo = {};
+
+  for (let i = 0; i < normalizado.length; i++) {
+    const char = normalizado[i];
+    if (char === " ") continue; // ignorar espacios
+    if (!conteo[char]) conteo[char] = 0;
+    conteo[char] += 1;
+  }
+
+  return conteo;
+}
+```
+
+---
+
+**📊 Comparativa — Problema 2**
+
+| Criterio | Sin IA | Con IA |
+|---|---|---|
+| Tiempo | ~5 min | ~1 min |
+| Enfoque | Funcional (chain) | Imperativo (bucle for) |
+| JSDoc | ❌ | ✅ con tipo `Object.<string, number>` |
+| Legibilidad | ✅ Concisa | ✅ Más explícita |
+| Lógica correcta | ✅ | ✅ |
+
+**Observación:** la solución propia usó encadenamiento funcional (`.toLowerCase().replace().split().forEach()`), más concisa pero más difícil de leer para alguien que empieza. La IA eligió un bucle `for` clásico, más verboso pero más comprensible. Ninguno es mejor — son estilos distintos. La IA añadió el tipo JSDoc `Object.<string, number>` que es más preciso que solo `Object`.
+
+---
+
+#### Problema 3 — Palabra más larga
+
+**Enunciado:** Escribe una función que reciba un array de palabras y devuelva la más larga. En empate, la primera.
+Ejemplo: `["gato", "elefante", "sol", "mariposa"]` → `"elefante"`
+
+---
+
+**✍️ Solución propia (sin IA)**
+
+```javascript
+function palabraMasLarga(palabras) {
+  let masLarga = "";
+  for (const palabra of palabras) {
+    if (palabra.length > masLarga.length) {
+      masLarga = palabra;
+    }
+  }
+  return masLarga;
+}
+
+console.log(palabraMasLarga(["gato", "elefante", "sol", "mariposa"])); // "elefante"
+```
+
+---
+
+**🤖 Solución con IA**
+
+```javascript
+/**
+ * Devuelve la palabra más larga de un array.
+ * En caso de empate de longitud, devuelve la primera que aparezca.
+ *
+ * @param {string[]} palabras - Array de palabras a evaluar.
+ * @returns {string | null} La palabra más larga, o null si el array está vacío.
+ */
+function obtenerPalabraMasLarga(palabras) {
+  // Si el array está vacío, devolvemos null
+  if (palabras.length === 0) return null;
+
+  let masLarga = palabras[0]; // inicializar con la primera palabra
+
+  for (let i = 1; i < palabras.length; i++) {
+    if (palabras[i].length > masLarga.length) {
+      masLarga = palabras[i];
+    }
+  }
+
+  return masLarga;
+}
+```
+
+---
+
+**📊 Comparativa — Problema 3**
+
+| Criterio | Sin IA | Con IA |
+|---|---|---|
+| Tiempo | ~3 min | ~1 min |
+| Manejo de array vacío | ❌ Devuelve `""` | ✅ Devuelve `null` explícitamente |
+| JSDoc | ❌ | ✅ con tipo de retorno `string \| null` |
+| Inicialización | `""` (podría dar false positive) | `palabras[0]` (más correcto) |
+| Lógica correcta | ✅ | ✅ |
+
+**Observación:** aquí la IA detectó un edge case que la solución propia no contempló — el array vacío. Inicializar con `palabras[0]` en lugar de `""` es también más robusto, ya que evitar comparar longitudes contra una cadena vacía artificial. Este fue el caso donde la IA aportó más valor real.
+
+---
+
+### Parte B — Tres tareas de optimización en TaskFlow
+
+Para esta parte se usó Cursor en modo Agent con el servidor MCP filesystem activo, lo que permitió a la IA leer el código directamente sin necesidad de pegarlo en el chat.
+
+---
+
+#### Tarea 1 — Optimizar `actualizarContadores`
+
+**Situación:** la función `actualizarContadores` calculaba estadísticas, actualizaba el DOM y actualizaba la barra de progreso todo en el mismo bloque, mezclando responsabilidades.
+
+**Prompt usado:**
+> *"Actúa como desarrollador senior. Revisa la función actualizarContadores en app.js y optimízala separando el cálculo de estadísticas de la actualización del DOM, sin cambiar su comportamiento externo."*
+
+**Resultado:** Cursor extrajo el cálculo a `obtenerEstadisticasTareas()` y dejó `actualizarContadores()` solo como coordinadora que llama a las subfunciones. El código pasó de 25 líneas con lógica mezclada a dos funciones de 10 líneas cada una con responsabilidad única.
+
+**Tiempo sin IA estimado:** ~20 min (identificar dónde separar, refactorizar sin romper nada, verificar)
+**Tiempo con IA:** ~3 min
+
+---
+
+#### Tarea 2 — Optimizar la función de filtrado
+
+**Situación:** `filtrarTareasPorTexto` y `aplicarFiltroDeEstado` eran dos funciones independientes que se llamaban por separado, obligando a renderizar la lista dos veces cuando se aplicaban ambos filtros a la vez.
+
+**Prompt usado:**
+> *"Razona paso a paso: ¿cómo se podría unificar filtrarTareasPorTexto y aplicarFiltroDeEstado para que solo se renderice la lista una vez cuando se aplican los dos filtros simultáneamente? Muestra la solución."*
+
+**Resultado:** Cursor propuso una función `obtenerTareasFiltradas(texto, estado)` que aplica ambos filtros en una sola pasada y devuelve el array resultante, delegando el renderizado a quien la llama. Eliminó el doble renderizado.
+
+**Tiempo sin IA estimado:** ~30 min
+**Tiempo con IA:** ~5 min
+
+---
+
+#### Tarea 3 — Optimizar accesos repetidos al DOM
+
+**Situación:** varias funciones llamaban a `document.getElementById()` en cada ejecución para obtener los mismos elementos, haciendo consultas al DOM innecesariamente repetidas.
+
+**Prompt usado:**
+> *"Revisa app.js con restricciones: identifica elementos del DOM que se consultan más de una vez con getElementById o querySelector, y mueve esas referencias a la sección de 'Referencias al DOM' al inicio del archivo. No cambies ninguna lógica, solo mueve las declaraciones."*
+
+**Resultado:** Cursor identificó 8 elementos que se consultaban repetidamente y los movió a la sección de referencias iniciales, convirtiendo consultas dinámicas en referencias estáticas cacheadas.
+
+**Tiempo sin IA estimado:** ~15 min (leer todo el archivo buscando patrones)
+**Tiempo con IA:** ~2 min
+
+---
+
+### Conclusiones del experimento
+
+#### Resumen de tiempos
+
+| Tarea | Sin IA (estimado) | Con IA | Ahorro |
+|---|---|---|---|
+| Problema 1 (pares) | 3 min | 1 min | 2 min |
+| Problema 2 (letras) | 5 min | 1 min | 4 min |
+| Problema 3 (palabras) | 3 min | 1 min | 2 min |
+| Optimización 1 (contadores) | 20 min | 3 min | 17 min |
+| Optimización 2 (filtros) | 30 min | 5 min | 25 min |
+| Optimización 3 (DOM) | 15 min | 2 min | 13 min |
+| **Total** | **~76 min** | **~13 min** | **~63 min** |
+
+#### ¿Dónde aportó más valor la IA?
+
+En los problemas genéricos, la diferencia fue pequeña — los tres eran solucionables sin IA en pocos minutos. Donde la IA marcó una diferencia real fue en las tareas de optimización del proyecto, donde hay que leer mucho código existente antes de poder hacer cualquier cambio.
+
+#### ¿Dónde no sustituyó a la comprensión propia?
+
+En el Problema 3, la IA generó una solución más robusta (con manejo de array vacío) que la solución propia. Sin embargo, si no se hubiera entendido el problema desde el principio, tampoco se habría podido evaluar si la solución de la IA era correcta. Resolver primero sin IA fue clave para poder juzgar la respuesta de la IA con criterio.
+
+#### Conclusión general
+
+> La IA no es más rápida porque "sepa más". Es más rápida porque no necesita leer el código línea a línea para encontrar el patrón que busca. El desarrollador sigue siendo necesario para definir qué optimizar, evaluar si la solución es correcta y decidir si aplicarla.
+
+---
+
 *Documento completado — Prácticas DAM · Proyecto TaskFlow*
