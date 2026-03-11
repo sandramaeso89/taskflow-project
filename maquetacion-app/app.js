@@ -74,7 +74,7 @@ function anadirTarea() {
   // Creamos el objeto tarea con id único
   const nuevaTarea = {
     id: Date.now(),
-    texto: texto,
+    texto: texto,a
     completada: false
   };
 
