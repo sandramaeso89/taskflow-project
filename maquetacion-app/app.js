@@ -371,11 +371,11 @@ function crearElementoTarea(tarea, opciones) {
 
   const chipsHTML =
     hashtags.length > 0
-      ? `<div class="mt-1 flex flex-wrap gap-1 text-[10px] text-gray-500">
+      ? `<div class="mt-1 flex flex-wrap gap-1 text-[10px] text-gray-300">
           ${hashtags
             .map(
               (tag) =>
-                `<span class="px-2 py-0.5 rounded-full bg-gray-800 border border-gray-700">#${escapeHTML(
+                `<span class="tag-chip px-2 py-0.5 rounded-full bg-gray-800 border border-gray-700">#${escapeHTML(
                   tag
                 )}</span>`
             )
@@ -603,11 +603,11 @@ function alternarTema() {
   // Tema oscuro (por defecto)
   if (esOscuro) {
     body.classList.add("bg-gray-950", "text-gray-300");
-    body.classList.remove("bg-white", "text-gray-900");
+    body.classList.remove("bg-gray-100", "text-gray-900");
   } else {
-    // Tema claro
+    // Tema claro, con contraste más suave
     body.classList.remove("bg-gray-950", "text-gray-300");
-    body.classList.add("bg-white", "text-gray-900");
+    body.classList.add("bg-gray-100", "text-gray-900");
   }
 }
 

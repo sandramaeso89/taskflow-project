@@ -14,26 +14,48 @@
     .btn-eliminar { opacity: 0; transition: opacity 0.2s; }
     .task-card:hover .btn-eliminar { opacity: 1; }
     .task-card {
-      background: rgb(3 7 18); /* gray-950, más oscuro que las stats */
-      border: 1px solid rgb(31 41 55);
       border-radius: 0.75rem;
       padding: 1rem;
       margin-bottom: 0.5rem;
       cursor: pointer;
       transition: all 0.2s;
     }
-    .task-card:hover {
+    /* Tema oscuro: tareas más oscuras que las stats */
+    html.dark .task-card {
+      background: rgb(3 7 18); /* gray-950 */
+      border: 1px solid rgb(31 41 55);
+    }
+    html.dark .task-card:hover {
       border-color: rgb(126 34 206);
       background: rgb(31 41 55);
       transform: translateY(-2px);
       box-shadow: 0 4px 24px rgba(0,0,0,0.35);
     }
-    .task-card.done {
+    html.dark .task-card.done {
       opacity: 0.5;
       border-color: rgb(52 211 153);
       background: rgba(52,211,153,0.05);
     }
-    .task-card.done .task-title { text-decoration: line-through; color: rgb(107 114 128); }
+    html.dark .task-card.done .task-title { text-decoration: line-through; color: rgb(107 114 128); }
+
+    /* Tema claro: tarjetas más claras y suaves */
+    html:not(.dark) .task-card {
+      background: #f9fafb; /* gray-50 */
+      border: 1px solid #e5e7eb; /* gray-300 */
+      color: #111827; /* gray-900 */
+    }
+    html:not(.dark) .task-card:hover {
+      border-color: #a855f7; /* violet-500 */
+      background: #eef2ff; /* indigo-50 */
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.10);
+    }
+    html:not(.dark) .task-card.done {
+      opacity: 0.7;
+      border-color: #22c55e; /* green-500 */
+      background: #ecfdf3; /* green-50 */
+    }
+    html:not(.dark) .task-card.done .task-title { text-decoration: line-through; color: #4b5563; }
     .task-row { display: flex; align-items: center; gap: 0.75rem; }
     .task-check {
       width: 20px; height: 20px; border-radius: 50%;
@@ -45,6 +67,35 @@
     .task-card.done .task-check { background: rgb(52 211 153); border-color: rgb(52 211 153); }
     .task-title { flex: 1; font-weight: 500; font-size: 0.95rem; }
     .btn-eliminar { background: none; border: none; cursor: pointer; font-size: 1rem; padding: 2px 4px; }
+
+    /* Stats cards: aclarar en tema claro */
+    html:not(.dark) .stats-card {
+      background: #f3f4f6; /* gray-100 */
+      border-color: #e5e7eb; /* gray-300 */
+      color: #111827;
+    }
+    html:not(.dark) .stats-card span.text-xs {
+      color: #6b7280; /* gray-500 */
+    }
+    html:not(.dark) .stats-card:hover {
+      background: #e5e7eb;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    /* Chips de etiquetas */
+    .tag-chip {
+      font-weight: 500;
+    }
+    html.dark .tag-chip {
+      color: #e5e7eb; /* texto más claro en oscuro */
+      background-color: #020617; /* gray-950 */
+      border-color: #1f2937; /* gray-800 */
+    }
+    html:not(.dark) .tag-chip {
+      color: #374151; /* gray-700 */
+      background-color: #e5e7eb; /* gray-200 */
+      border-color: #d1d5db; /* gray-300 */
+    }
   </style>
 </head>
 
@@ -128,17 +179,17 @@
 
       <!-- Stats -->
       <div class="flex gap-4 mb-8 mt-8 flex-wrap">
-        <div class="flex-1 min-w-[100px] bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-2 hover:-translate-y-1 transition duration-200">
+        <div class="stats-card flex-1 min-w-[100px] bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-2 hover:-translate-y-1 transition duration-200">
           <span class="text-xl">📝</span>
           <span id="stat-total" class="text-3xl font-bold">0</span>
           <span class="text-xs text-gray-500">Total</span>
         </div>
-        <div class="flex-1 min-w-[100px] bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-2 hover:-translate-y-1 transition duration-200">
+        <div class="stats-card flex-1 min-w-[100px] bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-2 hover:-translate-y-1 transition duration-200">
           <span class="text-xl">⏳</span>
           <span id="stat-pendientes" class="text-3xl font-bold">0</span>
           <span class="text-xs text-gray-500">Pendientes</span>
         </div>
-        <div class="flex-1 min-w-[100px] bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-2 hover:-translate-y-1 transition duration-200">
+        <div class="stats-card flex-1 min-w-[100px] bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-2 hover:-translate-y-1 transition duration-200">
           <span class="text-xl">✅</span>
           <span id="stat-completadas" class="text-3xl font-bold">0</span>
           <span class="text-xs text-gray-500">Completadas</span>
