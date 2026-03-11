@@ -8,60 +8,79 @@ Aplicación web de gestión de tareas con persistencia local, desarrollada como 
 
 ## 📸 Vista previa
 
-> _App de tareas con diseño oscuro, buscador en tiempo real y separación entre tareas pendientes y completadas._
+> _App de tareas con diseño oscuro/claro, buscador avanzado, etiquetas tipo hashtag y estadísticas rápidas._
 
 ---
 
-## ✅ Funcionalidades
+## ✅ Funcionalidades principales
 
-| Funcionalidad | Descripción |
-|---|---|
-| ➕ Añadir tareas | Formulario modal con validación, se abre con botón o tecla `Enter` |
-| 🗑️ Eliminar tareas | Botón de borrado por tarea, con animación de salida |
-| ✓ Completar tareas | Marca una tarea como hecha y la mueve a la sección correspondiente |
-| 💾 Persistencia | Guardado automático en `localStorage` — las tareas sobreviven al refresco |
-| 🔍 Búsqueda en tiempo real | Filtra tareas mientras escribes (Bonus) |
-| 📊 Estadísticas | Contador de total, pendientes y completadas en tiempo real |
-| 📈 Barra de progreso | Porcentaje visual de tareas completadas |
+### Gestión de tareas
+
+- **Añadir tareas** mediante un modal con validación (mínimo de caracteres, sin duplicados, sin solo símbolos).
+- **Marcar como completadas** y mover automáticamente a la sección correspondiente.
+- **Eliminar tareas** con animación de salida.
+- **Persistencia** en `localStorage` para que las tareas sobrevivan a los refrescos.
+- **Tareas de ejemplo** en el primer arranque para no empezar con la pantalla vacía.
+
+### Búsqueda y filtros
+
+- **Búsqueda en tiempo real** mientras escribes.
+- Búsqueda por **múltiples palabras** (todas deben aparecer en la tarea).
+- Soporte de **hashtags** dentro del texto de la tarea (ej: `#work`, `#personal`).
+- Filtros combinados:
+  - Estado: `Todas / Pendientes / Completadas`.
+  - Texto + hashtags.
+  - Barra de chips de etiquetas clicables (con opción “Todas”).
+
+### UX y feedback
+
+- Modal claro para crear tareas, con mensajes de error visibles bajo el campo.
+- Atajos de teclado:
+  - `N` → abrir modal de nueva tarea.
+  - `Esc` → cerrar el modal.
+  - `Ctrl+F` / `Cmd+F` → enfocar el buscador interno.
+- **Toast** de confirmación al crear una tarea.
+- Micro-animación cuando una nueva tarea aparece en la lista.
+- Mensajes de estado vacíos mejorados, especialmente en “Completadas”.
+
+### Tema y apariencia
+
+- **Modo oscuro** por defecto, con fondo profundo y tarjetas diferenciadas.
+- **Modo claro** con contraste suave:
+  - Tarjetas de tareas y stats más claras, sin bloques demasiado oscuros.
+  - Chips de etiquetas adaptados al tema (fondos y bordes distintos en claro/oscuro).
+- Cards de estadísticas (`Total`, `Pendientes`, `Completadas`) con ligera sensación de profundidad al pasar el ratón.
 
 ---
 
 ## 🗂️ Estructura del proyecto
 
-```
+```text
 taskflow/
-├── index.html   # Estructura HTML y estilos del modal
-├── style.css    # Variables CSS, layout, componentes y media queries
-└── app.js       # Toda la lógica: tareas, localStorage, eventos, búsqueda
+├── maquetacion-app/
+│   ├── index.html   # Maquetación principal y estilos específicos (cards, chips, etc.)
+│   ├── style.css    # CSS generado por Tailwind + utilidades
+│   └── app.js       # Lógica: tareas, filtros, localStorage, tema, atajos...
+└── README.md        # Documentación del proyecto
 ```
 
 ---
 
 ## 🧠 Lógica principal (`app.js`)
 
-### Añadir una tarea
-Captura el texto del input, crea un objeto `{ id, texto, completada }`, lo empuja al array `tareas`, llama a `guardarEnLocalStorage()` y renderiza el nuevo elemento en el DOM.
-
-### Eliminar una tarea
-Filtra el array quitando el objeto con ese `id`, guarda el array actualizado en localStorage y elimina el nodo del DOM con una animación de salida.
-
-### Persistencia con localStorage
-```js
-// Guardar
-localStorage.setItem("taskflow-tareas", JSON.stringify(tareas));
-
-// Cargar al iniciar
-let tareas = JSON.parse(localStorage.getItem("taskflow-tareas")) || [];
-```
-
-### Búsqueda (Bonus)
-Escucha el evento `input` en el buscador y oculta con `display: none` las tarjetas cuyo texto no incluya el término buscado.
+- Gestión del array `tareas` en memoria (alta, baja, toggle de completado).
+- Sincronización con `localStorage` a cada cambio relevante.
+- Renderizado de tareas en dos listas (`Pendientes` / `Completadas`).
+- Búsqueda de texto y hashtags con filtros combinados.
+- Actualización de estadísticas y barra de progreso.
+- Gestión de tema (oscuro/claro) y eventos de teclado globales.
 
 ---
 
 ## 🛡️ Seguridad
 
-El texto introducido por el usuario se escapa con `escapeHTML()` antes de insertarse en el DOM, previniendo ataques XSS básicos.
+- El texto introducido por el usuario se escapa con una función `escapeHTML()` antes de insertarse en el DOM, reduciendo el riesgo de XSS básicos.
+- El acceso a `localStorage` está envuelto en `try/catch` para evitar que errores de cuota rompan la UI.
 
 ---
 
@@ -69,20 +88,72 @@ El texto introducido por el usuario se escapa con `escapeHTML()` antes de insert
 
 ```bash
 git clone https://github.com/sandramaeso89/taskflow
-cd taskflow
-# Abre index.html en tu navegador (no necesita servidor)
+cd taskflow/maquetacion-app
 ```
 
-O simplemente abre `index.html` directamente en el navegador. No tiene dependencias externas.
+### Opción 1: Abrir directamente el HTML
+
+Abre `index.html` en tu navegador (doble clic o “Abrir con…”).  
+Cada vez que guardes cambios, recarga la pestaña.
+
+### Opción 2: Servidor local con auto-reload (recomendado)
+
+Con Node instalado:
+
+```bash
+cd maquetacion-app
+npx live-server
+```
+
+Esto abrirá una URL tipo `http://127.0.0.1:8080` y recargará la página al guardar archivos.
+
+---
+
+## 📚 Ejemplos de uso
+
+### 1. Crear una tarea con hashtags
+
+1. Haz clic en `+ Nueva tarea` o pulsa `N`.
+2. Escribe, por ejemplo:
+
+   ```text
+   Configurar entorno de desarrollo #setup #work
+   ```
+
+3. Pulsa “Añadir tarea”.
+
+Verás la tarea en la sección **Pendientes** con chips `#setup` y `#work`, y esas etiquetas aparecerán también en la barra de filtros.
+
+### 2. Buscar por texto y etiqueta
+
+1. En el buscador superior, escribe:
+
+   ```text
+   entorno #work
+   ```
+
+2. La lista mostrará solo las tareas que incluyan la palabra “entorno” y tengan el hashtag `#work`.
+
+### 3. Ver tareas completadas
+
+1. Haz clic en el icono de check de una tarea pendiente.
+2. Cambia a la pestaña **Completadas**.
+3. Verás la tarea movida allí; si no hay ninguna, se muestra un mensaje explicativo y un mini-CTA.
+
+### 4. Usar atajos de teclado
+
+- `N` → abre el modal de nueva tarea (si no estás escribiendo en un campo de texto).
+- `Esc` → cierra el modal abierto.
+- `Ctrl+F` / `Cmd+F` → enfoca el buscador interno de tareas.
 
 ---
 
 ## 🛠️ Tecnologías
 
-- **HTML5** — estructura semántica
-- **CSS3** — variables custom, grid/flexbox, media queries, animaciones
-- **JavaScript (Vanilla ES6+)** — sin frameworks ni librerías externas
-- **localStorage** — persistencia de datos en el navegador
+- **HTML5** — estructura semántica.
+- **CSS3 / Tailwind (build ya generado)** — layout, tipografía y diseño responsivo.
+- **JavaScript (Vanilla ES6+)** — sin frameworks ni librerías externas.
+- **localStorage** — persistencia en el navegador.
 
 ---
 
