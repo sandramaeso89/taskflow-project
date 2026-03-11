@@ -68,6 +68,22 @@ function crearDebounce(fn, delayMs) {
   };
 }
 
+/**
+ * Muestra un pequeño toast informativo en la esquina inferior derecha.
+ * @param {string} mensaje
+ */
+function mostrarToast(mensaje) {
+  const toast = document.getElementById("toast");
+  if (!toast) return;
+  toast.textContent = mensaje;
+  toast.style.opacity = "1";
+  toast.style.pointerEvents = "auto";
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.pointerEvents = "none";
+  }, 1800);
+}
+
 // ── 2. Utilidades de almacenamiento ──
 
 /**
@@ -259,13 +275,14 @@ function manejarSubmitNuevaTarea() {
   const nuevaTarea = crearTarea(textoNormalizado);
   tareas.push(nuevaTarea);
   guardarTareasEnLocalStorage(tareas);
-  renderizarTareaEnLista(nuevaTarea);
+  renderizarTareaEnLista(nuevaTarea, { resaltar: true });
   actualizarContadores();
   if (inputTareaError) {
     inputTareaError.textContent = "";
     inputTareaError.style.display = "none";
   }
   cerrarModalNuevaTarea();
+  mostrarToast("Tarea creada");
 }
 
 /**
@@ -339,9 +356,10 @@ function escapeHTML(texto) {
 /**
  * Crea el elemento `<li>` visual que representa una tarea.
  * @param {{id:number,texto:string,completada:boolean}} tarea
+ * @param {{resaltar?:boolean}} [opciones]
  * @returns {HTMLLIElement}
  */
-function crearElementoTarea(tarea) {
+function crearElementoTarea(tarea, opciones) {
   const li = document.createElement("li");
   li.classList.add(CLASE_TASK_CARD);
   if (tarea.completada) {
@@ -385,15 +403,26 @@ function crearElementoTarea(tarea) {
     botonEliminar.addEventListener("click", () => eliminarTarea(tarea.id));
   }
 
+  if (opciones?.resaltar) {
+    li.style.transform = "scale(0.96)";
+    li.style.opacity = "0";
+    requestAnimationFrame(() => {
+      li.style.transition = "transform 0.18s ease-out, opacity 0.18s ease-out";
+      li.style.transform = "scale(1)";
+      li.style.opacity = "1";
+    });
+  }
+
   return li;
 }
 
 /**
  * Inserta una tarea en la lista correspondiente (pendientes o completadas).
  * @param {{id:number,texto:string,completada:boolean}} tarea
+ * @param {{resaltar?:boolean}} [opciones]
  */
-function renderizarTareaEnLista(tarea) {
-  const elemento = crearElementoTarea(tarea);
+function renderizarTareaEnLista(tarea, opciones) {
+  const elemento = crearElementoTarea(tarea, opciones);
 
   if (tarea.completada && listaCompletadas) {
     listaCompletadas.appendChild(elemento);

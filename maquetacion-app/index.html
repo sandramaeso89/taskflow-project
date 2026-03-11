@@ -14,7 +14,7 @@
     .btn-eliminar { opacity: 0; transition: opacity 0.2s; }
     .task-card:hover .btn-eliminar { opacity: 1; }
     .task-card {
-      background: rgb(17 24 39);
+      background: rgb(3 7 18); /* gray-950, más oscuro que las stats */
       border: 1px solid rgb(31 41 55);
       border-radius: 0.75rem;
       padding: 1rem;
@@ -51,8 +51,8 @@
 <body class="bg-gray-950 text-gray-300 min-h-screen grid grid-rows-[auto_1fr]">
 
   <!-- HEADER -->
-  <header class="bg-gray-900 border-b border-gray-800 px-8 py-3 flex items-center justify-between sticky top-0 z-50">
-    <div class="text-lg font-bold text-purple-300">Task<span class="font-normal text-gray-500">Flow</span></div>
+  <header class="bg-gray-900 border-b border-gray-800 px-8 py-4 flex items-center justify-between sticky top-0 z-50">
+    <div class="text-6xl font-bold text-purple-300 leading-none">Task<span class="font-normal text-gray-500">Flow</span></div>
 
     <div class="flex items-center gap-3">
       <div class="relative">
@@ -121,13 +121,13 @@
         </div>
       </div>
 
-      <div class="mb-8">
+      <div class="mb-12">
         <h3 class="text-xs text-gray-500 uppercase tracking-widest mb-2">Etiquetas</h3>
         <div id="filtro-etiquetas" class="flex flex-wrap gap-2 text-xs text-gray-400"></div>
       </div>
 
       <!-- Stats -->
-      <div class="flex gap-4 mb-8 mt-4 flex-wrap">
+      <div class="flex gap-4 mb-8 mt-8 flex-wrap">
         <div class="flex-1 min-w-[100px] bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-2 hover:-translate-y-1 transition duration-200">
           <span class="text-xl">📝</span>
           <span id="stat-total" class="text-3xl font-bold">0</span>
@@ -166,7 +166,9 @@
         </h2>
         <ul id="lista-completadas">
           <li id="empty-completadas" class="text-center py-8 text-gray-600">
-            <span class="text-3xl block mb-2">📭</span>Nada completado aún.
+            <span class="text-3xl block mb-2">📭</span>
+            <p class="mb-1">Aún no has marcado ninguna tarea como completada.</p>
+            <p class="text-xs text-gray-500">Completa alguna tarea para que aparezca aquí.</p>
           </li>
         </ul>
       </div>
@@ -201,6 +203,12 @@
         >Añadir tarea</button>
       </div>
     </div>
+  </div>
+
+  <div id="toast"
+       class="fixed bottom-6 right-6 px-4 py-2 rounded-lg bg-gray-900 border border-gray-700 text-sm text-gray-200 shadow-2xl transition-opacity duration-300"
+       style="opacity:0; pointer-events:none;">
+    Tarea creada
   </div>
 
   <script src="app.js"></script>
