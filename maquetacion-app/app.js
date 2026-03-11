@@ -2,7 +2,14 @@
 // APP.JS — Lógica principal de TaskFlow
 // ============================================================
 
-// ── 1. Referencias al DOM ──
+// ── 1. Referencias al DOM y constantes ──
+
+const STORAGE_KEY_TAREAS = "taskflow-tareas";
+const CLASE_TASK_CARD = "task-card";
+const CLASE_DONE = "done";
+const DURACION_ANIMACION_ELIMINAR_MS = 300;
+const DURACION_RESALTAR_ERROR_MS = 1200;
+const DURACION_DEBOUNCE_BUSCADOR_MS = 150;
 const btnNuevaTarea      = document.getElementById("btn-nueva-tarea");
 const modalOverlay       = document.getElementById("modal-overlay");
 const inputTarea         = document.getElementById("input-tarea");
@@ -32,6 +39,23 @@ const labelProgreso      = document.getElementById("pct-label");
 // Estado de la app
 let tareas = [];
 let filtroActivo = "todas";
+let contadorIdTarea = 0;
+
+// ── 1.1 Utilidades genéricas ──
+
+/**
+ * Pequeño helper para crear funciones con "debounce".
+ * @param {Function} fn
+ * @param {number} delayMs
+ * @returns {Function}
+ */
+function crearDebounce(fn, delayMs) {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => fn(...args), delayMs);
+  };
+}
 
 // ── 2. Utilidades de almacenamiento ──
 
@@ -41,7 +65,7 @@ let filtroActivo = "todas";
  */
 function cargarTareasPersistidas() {
   try {
-    const data = localStorage.getItem("taskflow-tareas");
+    const data = localStorage.getItem(STORAGE_KEY_TAREAS);
     if (!data) return [];
     const parsed = JSON.parse(data);
     return Array.isArray(parsed) ? parsed : [];
@@ -57,7 +81,7 @@ function cargarTareasPersistidas() {
  */
 function guardarTareasEnLocalStorage(tareasAGuardar) {
   try {
-    localStorage.setItem("taskflow-tareas", JSON.stringify(tareasAGuardar));
+    localStorage.setItem(STORAGE_KEY_TAREAS, JSON.stringify(tareasAGuardar));
   } catch {
     // Silenciamos errores de cuota / privacidad; la app sigue funcionando sin persistencia.
   }
@@ -189,7 +213,7 @@ function validarTextoNuevaTarea(textoCrudo) {
  */
 function crearTarea(texto) {
   return {
-    id: Date.now(),
+    id: Date.now() + (++contadorIdTarea),
     texto,
     completada: false,
   };
@@ -209,7 +233,7 @@ function manejarSubmitNuevaTarea() {
     setTimeout(() => {
       inputTarea.style.borderColor = "";
       inputTarea.title = "";
-    }, 1200);
+    }, DURACION_RESALTAR_ERROR_MS);
     return;
   }
 
@@ -232,7 +256,7 @@ function eliminarTarea(idTarea) {
   const elemento = document.querySelector(`[data-id="${idTarea}"]`);
   if (elemento) {
     elemento.classList.add("saliendo");
-    setTimeout(() => elemento.remove(), 300);
+    setTimeout(() => elemento.remove(), DURACION_ANIMACION_ELIMINAR_MS);
   }
 
   actualizarContadores();
@@ -278,9 +302,9 @@ function escapeHTML(texto) {
  */
 function crearElementoTarea(tarea) {
   const li = document.createElement("li");
-  li.classList.add("task-card");
+  li.classList.add(CLASE_TASK_CARD);
   if (tarea.completada) {
-    li.classList.add("done");
+    li.classList.add(CLASE_DONE);
   }
   li.dataset.id = String(tarea.id);
 
@@ -329,13 +353,18 @@ function filtrarTareasPorTexto() {
   if (!inputBuscar) return;
   const termino = inputBuscar.value.trim().toLowerCase();
 
-  document.querySelectorAll(".task-card").forEach((item) => {
+  document.querySelectorAll(`.${CLASE_TASK_CARD}`).forEach((item) => {
     const tituloElemento = item.querySelector(".task-title");
     if (!tituloElemento) return;
     const titulo = tituloElemento.textContent.toLowerCase();
     item.style.display = titulo.includes(termino) ? "" : "none";
   });
 }
+
+const filtrarTareasPorTextoDebounced = crearDebounce(
+  filtrarTareasPorTexto,
+  DURACION_DEBOUNCE_BUSCADOR_MS
+);
 
 /**
  * Marca visualmente la pestaña activa y oculta/enseña secciones según filtro.
@@ -355,6 +384,28 @@ function aplicarFiltroDeEstado(nuevoFiltro) {
     sectionPendientes.style.display = nuevoFiltro === "completadas" ? "none" : "";
     sectionCompletadas.style.display = nuevoFiltro === "pendientes" ? "none" : "";
   }
+}
+
+/**
+ * Verifica que los elementos críticos del DOM existan.
+ * Si faltan, registra un error y evita seguir con la inicialización.
+ * @returns {boolean}
+ */
+function validarDOMRequerido() {
+  const elementosObligatorios = [
+    listaPendientes,
+    listaCompletadas,
+    modalOverlay,
+    inputTarea,
+  ];
+
+  const faltan = elementosObligatorios.some((el) => !el);
+  if (faltan) {
+    console.error("[TaskFlow] Faltan elementos críticos en el DOM. La aplicación no puede inicializarse correctamente.");
+    return false;
+  }
+
+  return true;
 }
 
 // ── 8. Preferencias de tema ──
@@ -426,7 +477,7 @@ function inicializarEventos() {
   });
 
   if (inputBuscar) {
-    inputBuscar.addEventListener("input", filtrarTareasPorTexto);
+    inputBuscar.addEventListener("input", filtrarTareasPorTextoDebounced);
   }
 
   if (btnTema) {
@@ -446,6 +497,7 @@ function inicializarEventos() {
  * Punto de entrada principal: carga datos, pinta tareas y deja la UI lista.
  */
 function inicializarTaskFlow() {
+  if (!validarDOMRequerido()) return;
   tareas = cargarTareasPersistidas();
   tareas.forEach((tarea) => renderizarTareaEnLista(tarea));
   actualizarContadores();
