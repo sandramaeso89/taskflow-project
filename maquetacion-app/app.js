@@ -13,6 +13,7 @@ const DURACION_DEBOUNCE_BUSCADOR_MS = 150;
 const btnNuevaTarea      = document.getElementById("btn-nueva-tarea");
 const modalOverlay       = document.getElementById("modal-overlay");
 const inputTarea         = document.getElementById("input-tarea");
+const inputTareaError    = document.getElementById("input-tarea-error");
 const btnAgregarTarea    = document.getElementById("btn-anadir");
 const btnCancelarModal   = document.getElementById("btn-cancelar");
 const listaPendientes    = document.getElementById("lista-pendientes");
@@ -164,6 +165,10 @@ function abrirModalNuevaTarea() {
   if (!modalOverlay || !inputTarea) return;
   modalOverlay.classList.remove("hidden");
   inputTarea.value = "";
+   if (inputTareaError) {
+    inputTareaError.textContent = "";
+    inputTareaError.style.display = "none";
+  }
   inputTarea.focus();
 }
 
@@ -232,6 +237,10 @@ function manejarSubmitNuevaTarea() {
   if (!esValido) {
     inputTarea.style.borderColor = "#ff6584";
     inputTarea.title = mensajeError || "";
+    if (inputTareaError) {
+      inputTareaError.textContent = mensajeError || "";
+      inputTareaError.style.display = "block";
+    }
     setTimeout(() => {
       inputTarea.style.borderColor = "";
       inputTarea.title = "";
@@ -244,6 +253,10 @@ function manejarSubmitNuevaTarea() {
   guardarTareasEnLocalStorage(tareas);
   renderizarTareaEnLista(nuevaTarea);
   actualizarContadores();
+  if (inputTareaError) {
+    inputTareaError.textContent = "";
+    inputTareaError.style.display = "none";
+  }
   cerrarModalNuevaTarea();
 }
 
@@ -596,8 +609,26 @@ function inicializarEventos() {
   }
 
   document.addEventListener("keydown", (evento) => {
+    const esEscrituraTexto =
+      evento.target instanceof HTMLInputElement ||
+      evento.target instanceof HTMLTextAreaElement ||
+      evento.target instanceof HTMLButtonElement ||
+      evento.target.isContentEditable;
+
     if (evento.key === "Escape") {
       cerrarModalNuevaTarea();
+    }
+
+    if (!esEscrituraTexto && (evento.key === "n" || evento.key === "N")) {
+      evento.preventDefault();
+      abrirModalNuevaTarea();
+    }
+
+    if (!esEscrituraTexto && (evento.key === "f" || evento.key === "F") && (evento.ctrlKey || evento.metaKey)) {
+      if (inputBuscar) {
+        evento.preventDefault();
+        inputBuscar.focus();
+      }
     }
   });
 
