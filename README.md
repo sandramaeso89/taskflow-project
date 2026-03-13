@@ -34,7 +34,8 @@ Aplicación web de gestión de tareas con persistencia local, desarrollada como 
 
 ### UX y feedback
 
-- Modal claro para crear tareas, con mensajes de error visibles bajo el campo.
+- **Formulario** con `<form>` para crear tareas (submit con Enter o clic), label asociada al campo de descripción.
+- Modal con mensajes de error visibles bajo el campo.
 - Atajos de teclado:
   - `N` → abrir modal de nueva tarea.
   - `Esc` → cerrar el modal.
@@ -49,20 +50,38 @@ Aplicación web de gestión de tareas con persistencia local, desarrollada como 
 - **Modo claro** con contraste suave:
   - Tarjetas de tareas y stats más claras, sin bloques demasiado oscuros.
   - Chips de etiquetas adaptados al tema (fondos y bordes distintos en claro/oscuro).
-- Cards de estadísticas (`Total`, `Pendientes`, `Completadas`) con ligera sensación de profundidad al pasar el ratón.
+- Estadísticas en **panel lateral** (Total, Pendientes, Completadas) y en cards en el área principal.
 
 ---
 
 ## 🗂️ Estructura del proyecto
 
 ```text
-taskflow/
+taskflow-project/
 ├── maquetacion-app/
-│   ├── index.html   # Maquetación principal y estilos específicos (cards, chips, etc.)
-│   ├── style.css    # CSS generado por Tailwind + utilidades
-│   └── app.js       # Lógica: tareas, filtros, localStorage, tema, atajos...
-└── README.md        # Documentación del proyecto
+│   ├── index.html   # Maquetación principal, plantilla <template>, estilos
+│   ├── style.css    # CSS generado por Tailwind
+│   └── app.js       # Lógica: tareas, filtros, localStorage, tema, atajos
+├── tailwind.config.js
+└── README.md
 ```
+
+---
+
+## 📐 Estructura HTML semántica
+
+- **header** — Encabezado con buscador, toggle de tema y botón de nueva tarea.
+- **aside** — Panel lateral con estadísticas (Total, Pendientes, Completadas) y barra de progreso.
+- **main** — Contenido principal: filtros, listas de tareas pendientes y completadas.
+- **footer** — Pie de página con información del proyecto.
+- **form** — Formulario de nueva tarea con label asociada y validación.
+- **template** — Plantilla HTML para el renderizado dinámico de cada tarea.
+
+### Accesibilidad y validación
+
+- Etiquetas `label` asociadas correctamente a los inputs.
+- Jerarquía de encabezados lógica (un único `h1`, orden h1 → h2 → h3).
+- HTML validado con el [validador W3C](https://validator.w3.org/).
 
 ---
 
@@ -70,7 +89,7 @@ taskflow/
 
 - Gestión del array `tareas` en memoria (alta, baja, toggle de completado).
 - Sincronización con `localStorage` a cada cambio relevante.
-- Renderizado de tareas en dos listas (`Pendientes` / `Completadas`).
+- Renderizado de tareas mediante la plantilla `<template>` en dos listas (`Pendientes` / `Completadas`).
 - Búsqueda de texto y hashtags con filtros combinados.
 - Actualización de estadísticas y barra de progreso.
 - Gestión de tema (oscuro/claro) y eventos de teclado globales.
@@ -87,8 +106,8 @@ taskflow/
 ## 🚀 Cómo ejecutarlo en local
 
 ```bash
-git clone https://github.com/sandramaeso89/taskflow
-cd taskflow/maquetacion-app
+git clone https://github.com/sandramaeso89/taskflow-project
+cd taskflow-project/maquetacion-app
 ```
 
 ### Opción 1: Abrir directamente el HTML
@@ -150,7 +169,7 @@ Verás la tarea en la sección **Pendientes** con chips `#setup` y `#work`, y es
 
 ## 🛠️ Tecnologías
 
-- **HTML5** — estructura semántica.
+- **HTML5** — estructura semántica (header, main, aside, footer), plantilla `<template>`.
 - **CSS3 / Tailwind (build ya generado)** — layout, tipografía y diseño responsivo.
 - **JavaScript (Vanilla ES6+)** — sin frameworks ni librerías externas.
 - **localStorage** — persistencia en el navegador.

@@ -14,7 +14,7 @@ const btnNuevaTarea      = document.getElementById("btn-nueva-tarea");
 const modalOverlay       = document.getElementById("modal-overlay");
 const inputTarea         = document.getElementById("input-tarea");
 const inputTareaError    = document.getElementById("input-tarea-error");
-const btnAgregarTarea    = document.getElementById("btn-anadir");
+const formNuevaTarea     = document.getElementById("form-nueva-tarea");
 const btnCancelarModal   = document.getElementById("btn-cancelar");
 const listaPendientes    = document.getElementById("lista-pendientes");
 const listaCompletadas   = document.getElementById("lista-completadas");
@@ -33,8 +33,10 @@ const statPendientesHome = document.getElementById("stat-pendientes");
 const statCompletadas    = document.getElementById("stat-completadas");
 const badgePendientes    = document.getElementById("badge-pendientes");
 const badgeCompletadas   = document.getElementById("badge-completadas");
-const countTodas         = document.getElementById("count-todas");
-const countCompletadas   = document.getElementById("count-completadas");
+const sidebarStatTotal       = document.getElementById("sidebar-stat-total");
+const sidebarStatPendientes  = document.getElementById("sidebar-stat-pendientes");
+const sidebarStatCompletadas = document.getElementById("sidebar-stat-completadas");
+const templateTarea      = document.getElementById("task-template");
 const progressFill       = document.getElementById("progress-fill");
 const labelProgreso      = document.getElementById("pct-label");
 
@@ -55,10 +57,10 @@ const TAREAS_DE_EJEMPLO = [
 // ── 1.1 Utilidades genéricas ──
 
 /**
- * Pequeño helper para crear funciones con "debounce".
- * @param {Function} fn
- * @param {number} delayMs
- * @returns {Function}
+ * Utilidad para crear funciones con retardo (debounce).
+ * @param {Function} fn - Función a ejecutar
+ * @param {number} delayMs - Milisegundos de espera
+ * @returns {Function} - Función con debounce
  */
 function crearDebounce(fn, delayMs) {
   let timeoutId;
@@ -69,8 +71,8 @@ function crearDebounce(fn, delayMs) {
 }
 
 /**
- * Muestra un pequeño toast informativo en la esquina inferior derecha.
- * @param {string} mensaje
+ * Muestra una notificación temporal en la esquina inferior derecha.
+ * @param {string} mensaje - Texto a mostrar
  */
 function mostrarToast(mensaje) {
   const toast = document.getElementById("toast");
@@ -97,7 +99,7 @@ function cargarTareasPersistidas() {
     const parsed = JSON.parse(data);
     return Array.isArray(parsed) ? parsed : [];
   } catch {
-    // Si algo va mal, devolvemos lista vacía para no romper la UI.
+    // Si algo falla, devolvemos lista vacía para no romper la interfaz.
     return [];
   }
 }
@@ -110,11 +112,11 @@ function guardarTareasEnLocalStorage(tareasAGuardar) {
   try {
     localStorage.setItem(STORAGE_KEY_TAREAS, JSON.stringify(tareasAGuardar));
   } catch {
-    // Silenciamos errores de cuota / privacidad; la app sigue funcionando sin persistencia.
+    // Ignoramos errores de cuota o privacidad; la app sigue funcionando sin guardar.
   }
 }
 
-// ── 3. Cálculo de métricas y actualización de UI ──
+// ── 3. Cálculo de métricas y actualización de interfaz ──
 
 /**
  * Calcula estadísticas básicas de las tareas actuales.
@@ -138,8 +140,9 @@ function actualizarContadores() {
   if (statCompletadas) statCompletadas.textContent = String(completadas);
   if (badgePendientes) badgePendientes.textContent = String(pendientes);
   if (badgeCompletadas) badgeCompletadas.textContent = String(completadas);
-  if (countTodas) countTodas.textContent = String(total);
-  if (countCompletadas) countCompletadas.textContent = String(completadas);
+  if (sidebarStatTotal) sidebarStatTotal.textContent = String(total);
+  if (sidebarStatPendientes) sidebarStatPendientes.textContent = String(pendientes);
+  if (sidebarStatCompletadas) sidebarStatCompletadas.textContent = String(completadas);
 
   actualizarBarraDeProgreso(total, completadas, pendientes);
   actualizarMensajesVacio();
@@ -354,13 +357,17 @@ function escapeHTML(texto) {
 }
 
 /**
- * Crea el elemento `<li>` visual que representa una tarea.
+ * Crea el elemento visual de una tarea usando la plantilla HTML.
  * @param {{id:number,texto:string,completada:boolean}} tarea
  * @param {{resaltar?:boolean}} [opciones]
  * @returns {HTMLLIElement}
  */
 function crearElementoTarea(tarea, opciones) {
-  const li = document.createElement("li");
+  if (!templateTarea) {
+    return crearElementoTareaFallback(tarea, opciones);
+  }
+
+  const li = templateTarea.content.cloneNode(true).querySelector("li");
   li.classList.add(CLASE_TASK_CARD);
   if (tarea.completada) {
     li.classList.add(CLASE_DONE);
@@ -369,36 +376,25 @@ function crearElementoTarea(tarea, opciones) {
   const hashtags = extraerHashtags(tarea.texto);
   li.dataset.hashtags = hashtags.join(" ");
 
-  const chipsHTML =
-    hashtags.length > 0
-      ? `<div class="mt-1 flex flex-wrap gap-1 text-[10px] text-gray-300">
-          ${hashtags
-            .map(
-              (tag) =>
-                `<span class="tag-chip px-2 py-0.5 rounded-full bg-gray-800 border border-gray-700">#${escapeHTML(
-                  tag
-                )}</span>`
-            )
-            .join("")}
-        </div>`
-      : "";
-
-  li.innerHTML = `
-    <div class="task-row">
-      <div class="task-check" aria-label="Marcar tarea como completada">✓</div>
-      <div class="task-title">${escapeHTML(tarea.texto)}</div>
-      <button class="btn-eliminar" aria-label="Eliminar tarea">🗑️</button>
-    </div>
-    ${chipsHTML}
-  `;
+  const tituloEl = li.querySelector(".task-title");
+  const tagsEl = li.querySelector(".task-tags");
+  if (tituloEl) tituloEl.textContent = tarea.texto;
+  if (tagsEl && hashtags.length > 0) {
+    tagsEl.innerHTML = hashtags
+      .map(
+        (tag) =>
+          `<span class="tag-chip px-2 py-0.5 rounded-full bg-gray-800 border border-gray-700">#${escapeHTML(tag)}</span>`
+      )
+      .join("");
+  } else if (tagsEl) {
+    tagsEl.innerHTML = "";
+  }
 
   const botonCheck = li.querySelector(".task-check");
   const botonEliminar = li.querySelector(".btn-eliminar");
-
   if (botonCheck) {
     botonCheck.addEventListener("click", () => alternarTareaCompletada(tarea.id));
   }
-
   if (botonEliminar) {
     botonEliminar.addEventListener("click", () => eliminarTarea(tarea.id));
   }
@@ -413,6 +409,43 @@ function crearElementoTarea(tarea, opciones) {
     });
   }
 
+  return li;
+}
+
+/**
+ * Crea una tarea sin plantilla si el template no existe (fallback).
+ * @param {{id:number,texto:string,completada:boolean}} tarea
+ * @param {{resaltar?:boolean}} [opciones]
+ * @returns {HTMLLIElement}
+ */
+function crearElementoTareaFallback(tarea, opciones) {
+  const li = document.createElement("li");
+  li.classList.add(CLASE_TASK_CARD);
+  if (tarea.completada) li.classList.add(CLASE_DONE);
+  li.dataset.id = String(tarea.id);
+  const hashtags = extraerHashtags(tarea.texto);
+  li.dataset.hashtags = hashtags.join(" ");
+  const chipsHTML =
+    hashtags.length > 0
+      ? `<div class="mt-1 flex flex-wrap gap-1 text-[10px] text-gray-300">${hashtags
+          .map(
+            (tag) =>
+              `<span class="tag-chip px-2 py-0.5 rounded-full bg-gray-800 border border-gray-700">#${escapeHTML(tag)}</span>`
+          )
+          .join("")}</div>`
+      : "";
+  li.innerHTML = `<div class="task-row"><div class="task-check" aria-label="Marcar tarea como completada">✓</div><div class="task-title">${escapeHTML(tarea.texto)}</div><button class="btn-eliminar" aria-label="Eliminar tarea">🗑️</button></div>${chipsHTML}`;
+  li.querySelector(".task-check")?.addEventListener("click", () => alternarTareaCompletada(tarea.id));
+  li.querySelector(".btn-eliminar")?.addEventListener("click", () => eliminarTarea(tarea.id));
+  if (opciones?.resaltar) {
+    li.style.transform = "scale(0.96)";
+    li.style.opacity = "0";
+    requestAnimationFrame(() => {
+      li.style.transition = "transform 0.18s ease-out, opacity 0.18s ease-out";
+      li.style.transform = "scale(1)";
+      li.style.opacity = "1";
+    });
+  }
   return li;
 }
 
@@ -600,12 +633,12 @@ function alternarTema() {
   const { body } = document;
   if (!body) return;
 
-  // Tema oscuro (por defecto)
+  // Tema oscuro como valor predeterminado
   if (esOscuro) {
     body.classList.add("bg-gray-950", "text-gray-300");
     body.classList.remove("bg-gray-100", "text-gray-900");
   } else {
-    // Tema claro, con contraste más suave
+    // Tema claro con contraste suave
     body.classList.remove("bg-gray-950", "text-gray-300");
     body.classList.add("bg-gray-100", "text-gray-900");
   }
@@ -621,8 +654,11 @@ function inicializarEventos() {
     btnNuevaTarea.addEventListener("click", abrirModalNuevaTarea);
   }
 
-  if (btnAgregarTarea) {
-    btnAgregarTarea.addEventListener("click", manejarSubmitNuevaTarea);
+  if (formNuevaTarea) {
+    formNuevaTarea.addEventListener("submit", (e) => {
+      e.preventDefault();
+      manejarSubmitNuevaTarea();
+    });
   }
 
   if (btnCancelarModal) {
@@ -633,14 +669,6 @@ function inicializarEventos() {
     modalOverlay.addEventListener("click", (evento) => {
       if (evento.target === modalOverlay) {
         cerrarModalNuevaTarea();
-      }
-    });
-  }
-
-  if (inputTarea) {
-    inputTarea.addEventListener("keydown", (evento) => {
-      if (evento.key === "Enter") {
-        manejarSubmitNuevaTarea();
       }
     });
   }
@@ -701,7 +729,7 @@ function inicializarTaskFlow() {
   aplicarFiltroDeEstado("todas");
 }
 
-// Arranque de la aplicación
-inicializarTaskFlow();
+// Inicio: primero eventos, después carga y renderizado
 inicializarEventos();
+inicializarTaskFlow();
 

@@ -20,9 +20,9 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-    /* Tema oscuro: tareas más oscuras que las stats */
+    /* Tema oscuro: tareas más oscuras que las estadísticas */
     html.dark .task-card {
-      background: rgb(3 7 18); /* gray-950 */
+      background: rgb(3 7 18); /* gris-950 */
       border: 1px solid rgb(31 41 55);
     }
     html.dark .task-card:hover {
@@ -40,20 +40,20 @@
 
     /* Tema claro: tarjetas más claras y suaves */
     html:not(.dark) .task-card {
-      background: #f9fafb; /* gray-50 */
-      border: 1px solid #e5e7eb; /* gray-300 */
-      color: #111827; /* gray-900 */
+      background: #f9fafb; /* gris-50 */
+      border: 1px solid #e5e7eb; /* gris-300 */
+      color: #111827; /* gris-900 */
     }
     html:not(.dark) .task-card:hover {
-      border-color: #a855f7; /* violet-500 */
-      background: #eef2ff; /* indigo-50 */
+      border-color: #a855f7; /* violeta-500 */
+      background: #eef2ff; /* índigo-50 */
       transform: translateY(-2px);
       box-shadow: 0 10px 25px rgba(15, 23, 42, 0.10);
     }
     html:not(.dark) .task-card.done {
       opacity: 0.7;
-      border-color: #22c55e; /* green-500 */
-      background: #ecfdf3; /* green-50 */
+      border-color: #22c55e; /* verde-500 */
+      background: #ecfdf3; /* verde-50 */
     }
     html:not(.dark) .task-card.done .task-title { text-decoration: line-through; color: #4b5563; }
     .task-row { display: flex; align-items: center; gap: 0.75rem; }
@@ -68,14 +68,14 @@
     .task-title { flex: 1; font-weight: 500; font-size: 0.95rem; }
     .btn-eliminar { background: none; border: none; cursor: pointer; font-size: 1rem; padding: 2px 4px; }
 
-    /* Stats cards: aclarar en tema claro */
+    /* Tarjetas de estadísticas: aclarar en tema claro */
     html:not(.dark) .stats-card {
-      background: #f3f4f6; /* gray-100 */
-      border-color: #e5e7eb; /* gray-300 */
+      background: #f3f4f6; /* gris-100 */
+      border-color: #e5e7eb; /* gris-300 */
       color: #111827;
     }
     html:not(.dark) .stats-card span.text-xs {
-      color: #6b7280; /* gray-500 */
+      color: #6b7280; /* gris-500 */
     }
     html:not(.dark) .stats-card:hover {
       background: #e5e7eb;
@@ -88,20 +88,20 @@
     }
     html.dark .tag-chip {
       color: #e5e7eb; /* texto más claro en oscuro */
-      background-color: #020617; /* gray-950 */
-      border-color: #1f2937; /* gray-800 */
+      background-color: #020617; /* gris-950 */
+      border-color: #1f2937; /* gris-800 */
     }
     html:not(.dark) .tag-chip {
-      color: #374151; /* gray-700 */
-      background-color: #e5e7eb; /* gray-200 */
-      border-color: #d1d5db; /* gray-300 */
+      color: #374151; /* gris-700 */
+      background-color: #e5e7eb; /* gris-200 */
+      border-color: #d1d5db; /* gris-300 */
     }
   </style>
 </head>
 
-<body class="bg-gray-950 text-gray-300 min-h-screen grid grid-rows-[auto_1fr]">
+<body class="bg-gray-950 text-gray-300 min-h-screen grid grid-rows-[auto_1fr_auto]">
 
-  <!-- HEADER -->
+  <!-- Encabezado -->
   <header class="bg-gray-900 border-b border-gray-800 px-8 py-4 flex items-center justify-between sticky top-0 z-50">
     <div class="text-6xl font-bold text-purple-300 leading-none">Task<span class="font-normal text-gray-500">Flow</span></div>
 
@@ -131,20 +131,26 @@
     </div>
   </header>
 
-  <!-- LAYOUT -->
+  <!-- Distribución principal -->
   <div class="flex min-h-0">
 
-    <!-- SIDEBAR -->
+    <!-- Barra lateral -->
     <aside class="w-56 flex-shrink-0 bg-gray-900 border-r border-gray-800 p-5 flex flex-col gap-6">
       <div>
-        <h3 class="text-xs text-gray-500 uppercase tracking-widest mb-3">Vistas</h3>
-        <div class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-sm text-purple-300 bg-gray-800 mb-1 transition duration-200 hover:bg-gray-700">
-          <span>📋</span> Todas
-          <span id="count-todas" class="ml-auto bg-gray-700 text-gray-400 text-xs rounded-full px-2 py-0.5">0</span>
-        </div>
-        <div class="flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer text-sm text-gray-400 transition duration-200 hover:bg-gray-800 hover:text-gray-200">
-          <span>✅</span> Completadas
-          <span id="count-completadas" class="ml-auto bg-gray-800 text-gray-500 text-xs rounded-full px-2 py-0.5">0</span>
+        <h3 class="text-xs text-gray-500 uppercase tracking-widest mb-3">Estadísticas</h3>
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-800 text-sm">
+            <span class="text-gray-400">Total</span>
+            <span id="sidebar-stat-total" class="font-bold text-gray-200">0</span>
+          </div>
+          <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-800 text-sm">
+            <span class="text-gray-400">Pendientes</span>
+            <span id="sidebar-stat-pendientes" class="font-bold text-gray-200">0</span>
+          </div>
+          <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-800 text-sm">
+            <span class="text-gray-400">Completadas</span>
+            <span id="sidebar-stat-completadas" class="font-bold text-gray-200">0</span>
+          </div>
         </div>
       </div>
 
@@ -160,7 +166,7 @@
       </div>
     </aside>
 
-    <!-- MAIN -->
+    <!-- Contenido principal -->
     <main class="flex-1 p-8 overflow-y-auto">
 
       <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
@@ -173,11 +179,11 @@
       </div>
 
       <div class="mb-8">
-        <h3 class="text-xs text-gray-500 uppercase tracking-widest mb-2">Etiquetas</h3>
+        <h2 class="text-xs text-gray-500 uppercase tracking-widest mb-2">Etiquetas</h2>
         <div id="filtro-etiquetas" class="flex flex-wrap gap-2 text-xs text-gray-400"></div>
       </div>
 
-      <!-- Stats -->
+      <!-- Estadísticas -->
       <div class="flex gap-4 mb-8 flex-wrap">
         <div class="stats-card flex-1 min-w-[100px] bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-2 hover:-translate-y-1 transition duration-200">
           <span class="text-xl">📝</span>
@@ -227,40 +233,64 @@
     </main>
   </div>
 
-  <!-- MODAL -->
+  <!-- Ventana modal -->
   <div id="modal-overlay" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[200]">
     <div class="bg-gray-900 border border-gray-700 rounded-xl p-8 w-[min(420px,92vw)] shadow-2xl">
       <h3 class="text-lg font-bold text-purple-300 mb-5">Nueva tarea</h3>
-      <input
-        type="text"
-        id="input-tarea"
-        placeholder="¿Qué tienes que hacer?"
-        maxlength="140"
-        class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-gray-200 placeholder-gray-600 mb-5 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition duration-200"
-      />
-      <p
-        id="input-tarea-error"
-        class="text-xs text-red-400 mb-5"
-        style="display:none"
-      ></p>
-      <div class="flex gap-3 justify-end">
-        <button
-          id="btn-cancelar"
-          class="bg-transparent border border-gray-700 text-gray-400 text-sm px-4 py-2 rounded-lg hover:border-gray-400 hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-200"
-        >Cancelar</button>
-        <button
-          id="btn-anadir"
-          class="bg-purple-700 hover:bg-purple-500 active:scale-95 text-white text-sm font-semibold px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 transition duration-200"
-        >Añadir tarea</button>
-      </div>
+      <form id="form-nueva-tarea" novalidate>
+        <label for="input-tarea" class="block text-sm text-gray-400 mb-1">Descripción de la tarea</label>
+        <input
+          type="text"
+          id="input-tarea"
+          placeholder="¿Qué tienes que hacer?"
+          maxlength="140"
+          class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-gray-200 placeholder-gray-600 mb-5 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition duration-200"
+        />
+        <p
+          id="input-tarea-error"
+          class="text-xs text-red-400 mb-5"
+          style="display:none"
+        ></p>
+        <div class="flex gap-3 justify-end">
+          <button
+            type="button"
+            id="btn-cancelar"
+            class="bg-transparent border border-gray-700 text-gray-400 text-sm px-4 py-2 rounded-lg hover:border-gray-400 hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-200"
+          >Cancelar</button>
+          <button
+            type="submit"
+            id="btn-anadir"
+            class="bg-purple-700 hover:bg-purple-500 active:scale-95 text-white text-sm font-semibold px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 transition duration-200"
+          >Añadir tarea</button>
+        </div>
+      </form>
     </div>
   </div>
+
+  <!-- Pie de página -->
+  <footer class="bg-gray-900 border-t border-gray-800 px-8 py-3 text-center text-xs text-gray-500">
+    TaskFlow — Sandra Maeso · DAM · Ciberseguridad y Python
+  </footer>
 
   <div id="toast"
        class="fixed bottom-6 right-6 px-4 py-2 rounded-lg bg-gray-900 border border-gray-700 text-sm text-gray-200 shadow-2xl transition-opacity duration-300"
        style="opacity:0; pointer-events:none;">
     Tarea creada
   </div>
+
+  <!-- Plantilla base para cada tarea -->
+  <template id="task-template">
+    <ul>
+      <li class="task-card">
+        <div class="task-row">
+          <div class="task-check" aria-label="Marcar tarea como completada">✓</div>
+          <div class="task-title"></div>
+          <button class="btn-eliminar" aria-label="Eliminar tarea">🗑️</button>
+        </div>
+        <div class="task-tags mt-1 flex flex-wrap gap-1 text-[10px] text-gray-300"></div>
+      </li>
+    </ul>
+  </template>
 
   <script src="app.js"></script>
 </body>

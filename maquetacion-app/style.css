@@ -548,7 +548,7 @@ video {
   height: auto;
 }
 
-/* Make elements with the HTML hidden attribute stay hidden by default */
+/* Mantener ocultos por defecto los elementos con el atributo hidden de HTML */
 
 [hidden]:where(:not([hidden="until-found"])) {
   display: none;
