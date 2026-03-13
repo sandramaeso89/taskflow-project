@@ -827,5 +827,3 @@ La diferencia más relevante encontrada durante esta comparativa no es la correc
 Para las prácticas de DAM, la estrategia más eficaz es usar cualquiera de los dos para generar un punto de partida rápido, y luego revisar críticamente el resultado antes de incorporarlo. La IA es más útil como **acelerador del trabajo propio** que como sustituto del razonamiento.
 
 ---
-
-*Documento completado — Prácticas DAM · Módulo de Herramientas de IA*
