@@ -24,30 +24,55 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     /* ═══════════════════════════════════════════════════════════════
-       TEMA CLARO — Centraliza aquí todos los colores para cambiarlos
+       TEMA CLARO — paleta minimalista, escala de grises coherente
        ═══════════════════════════════════════════════════════════════ */
     :root {
-      --light-bg-body: #ffffff;
+      /* ─── Superficies (surfaces) ─── */
+      --light-bg-body: #f5f5f5;
       --light-bg-header: #ffffff;
-      --light-bg-sidebar: #ffffff;
+      --light-bg-sidebar: #fafafa;
       --light-bg-card: #ffffff;
-      --light-bg-card-hover: #fafafa;
+      --light-bg-card-hover: #f9fafb;
       --light-bg-card-done: #f9fafb;
-      --light-bg-input: #f9fafb;
+      --light-bg-input: #ffffff;
+      --light-bg-input-buscar: #ffffff;
+      --dark-bg-input-buscar: rgb(31 41 55);
+      --light-bg-sidebar-stat: #ffffff;
+      --dark-bg-sidebar-stat: rgb(32, 55, 80);
       --light-bg-stats-inner: #f9fafb;
       --light-bg-badge: #f3f4f6;
-      --light-bg-button: #4b5563;
-      --light-bg-button-hover: #374151;
+      --light-bg-tabs-container: #f3f4f6;
+
+      /* ─── Interactivos (botones, pestaña activa, avatar) ─── */
+      --light-bg-button: #374151;
+      --light-bg-button-hover: #4b5563;
+      --dark-bg-btn-nueva-tarea: rgb(126 34 206);
+      --dark-bg-btn-nueva-tarea-hover: rgb(168 85 247);
+      --light-bg-avatar: #374151;
+      --light-text-avatar: #ffffff;
+      --light-bg-tab-active: #374151;
+      --dark-bg-tab-active: rgb(126 34 206);
+      --dark-bg-tabs-container: rgb(17 24 39);
+
+      /* ─── Bordes ─── */
       --light-border: #e5e7eb;
       --light-border-light: #f3f4f6;
+
+      /* ─── Texto (jerarquía clara) ─── */
       --light-text: #111827;
       --light-text-muted: #6b7280;
+      --light-text-section: #111827;
       --light-text-subtle: #9ca3af;
+      --light-text-tab-inactive: #6b7280;
+      --dark-text-tab-inactive: rgb(156 163 175);
+
+      /* ─── UI (checks, progreso, sombras) ─── */
+      --light-bg-section-badge: #f3f4f6;
       --light-check-border: #d1d5db;
       --light-check-done: #9ca3af;
-      --light-progress-from: #9ca3af;
-      --light-progress-to: #6b7280;
-      --light-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      --light-progress-from: #e5e7eb;
+      --light-progress-to: #9ca3af;
+      --light-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
     }
 
     /* Aplicar variables del tema claro al layout */
@@ -62,18 +87,45 @@
     html:not(.dark) [id^="sidebar-stat"] { color: var(--light-text) !important; }
     html:not(.dark) #progress-fill { background: linear-gradient(to right, var(--light-progress-from), var(--light-progress-to)) !important; }
     html:not(.dark) .progress-track { background: var(--light-bg-badge) !important; }
+    html:not(.dark) .sidebar-stat-box { background: var(--light-bg-sidebar-stat) !important; }
+    html.dark .sidebar-stat-box { background: var(--dark-bg-sidebar-stat) !important; }
+    html:not(.dark) #section-pendientes h2, html:not(.dark) #section-completadas h2 { color: var(--light-text-section) !important; }
+    html:not(.dark) #badge-pendientes, html:not(.dark) #badge-completadas { color: var(--light-text-section) !important; background: var(--light-bg-section-badge) !important; }
+    html:not(.dark) #input-buscar { background: var(--light-bg-input-buscar) !important; }
+    html.dark #input-buscar { background: var(--dark-bg-input-buscar) !important; }
+
+    /* Pestañas de filtro (Todas, Pendientes, Completadas): fondo activo */
+    html:not(.dark) .tab.tab-active { background-color: var(--light-bg-tab-active) !important; }
+    html.dark .tab.tab-active { background-color: var(--dark-bg-tab-active) !important; }
+    html:not(.dark) #tabs-container { background: var(--light-bg-tabs-container) !important; }
+    html.dark #tabs-container { background: var(--dark-bg-tabs-container) !important; }
+    html:not(.dark) .tab:not(.tab-active) { color: var(--light-text-tab-inactive) !important; }
+    html.dark .tab:not(.tab-active) { color: var(--dark-text-tab-inactive) !important; }
+    html.dark #btn-nueva-tarea { background-color: var(--dark-bg-btn-nueva-tarea) !important; }
+    html.dark #btn-nueva-tarea:hover { background-color: var(--dark-bg-btn-nueva-tarea-hover) !important; }
+    html:not(.dark) #avatar-usuario { background: var(--light-bg-avatar) !important; color: var(--light-text-avatar) !important; }
 
     /* Variables globales (tema oscuro y utilidades) */
     :root {
+      /* Púrpura principal: borde de tarjeta al hover y focus en modo oscuro */
       --color-primario: rgb(126 34 206);
+      /* Púrpura más claro: hover en modo oscuro */
       --color-primario-hover: rgb(168 85 247);
+      /* Fondo de las tarjetas de tarea en modo oscuro */
       --color-fondo-oscuro: rgb(3 7 18);
+      /* Fondo de tarjetas en modo claro (usa variable centralizada) */
       --color-fondo-claro: var(--light-bg-card);
+      /* Color de texto en modo claro */
       --color-texto-claro: var(--light-text);
+      /* Borde de tarjetas en modo oscuro */
       --color-borde-oscuro: rgb(31 41 55);
+      /* Borde en modo claro */
       --color-borde-claro: var(--light-border);
+      /* Verde: borde y fondo de tarjeta completada, círculo check completado en modo oscuro */
       --color-exito: rgb(52 211 153);
+      /* Verde muy suave: fondo de tarjeta completada en modo oscuro */
       --color-exito-fondo: rgba(52, 211, 153, 0.05);
+      /* Rojo: borde del input cuando hay error de validación (solo modo oscuro) */
       --color-error: #ff6584;
 
       /* Tipografía */
@@ -239,7 +291,7 @@
           type="text"
           id="input-buscar"
           placeholder="Buscar tarea…"
-          class="input-buscar-resp bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg pl-8 pr-3 py-1.5 text-base text-gray-900 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-600 focus:outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500 dark:focus:border-purple-500 dark:focus:ring-purple-500 transition duration-200 w-56 md:w-56"
+          class="input-buscar-resp border border-gray-200 dark:border-gray-700 rounded-lg pl-8 pr-3 py-1.5 text-base text-gray-600 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-600 focus:outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500 dark:focus:border-purple-500 dark:focus:ring-purple-500 transition duration-200 w-56 md:w-56"
         />
       </div>
 
@@ -251,10 +303,10 @@
 
       <button
         id="btn-nueva-tarea"
-        class="bg-gray-600 hover:bg-gray-500 dark:bg-purple-700 dark:hover:bg-purple-500 active:scale-95 text-white text-sm font-semibold px-4 py-1.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-purple-400 transition duration-200"
+        class="bg-gray-600 hover:bg-gray-500 active:scale-95 text-white text-sm font-semibold px-4 py-1.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-purple-400 transition duration-200"
       >+ Nueva tarea</button>
 
-      <div class="w-9 h-9 rounded-full bg-gray-600 dark:bg-gradient-to-br dark:from-purple-600 dark:to-pink-500 flex items-center justify-center font-bold text-xs text-white cursor-pointer select-none">SM</div>
+      <div id="avatar-usuario" class="w-9 h-9 rounded-full dark:bg-gradient-to-br dark:from-purple-600 dark:to-pink-500 flex items-center justify-center font-bold text-xs cursor-pointer select-none">SM</div>
     </div>
   </header>
 
@@ -265,15 +317,15 @@
       <div>
         <h3 class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3">Estadísticas</h3>
         <div class="flex flex-col gap-1.5">
-          <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm border border-gray-100 dark:border-transparent">
+          <div class="sidebar-stat-box flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm border border-gray-100 dark:border-transparent">
             <span class="text-gray-600 dark:text-gray-400">Total</span>
             <span id="sidebar-stat-total" class="font-bold text-gray-800 dark:text-gray-200">0</span>
           </div>
-          <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm border border-gray-100 dark:border-transparent">
+          <div class="sidebar-stat-box flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm border border-gray-100 dark:border-transparent">
             <span class="text-gray-600 dark:text-gray-400">Pendientes</span>
             <span id="sidebar-stat-pendientes" class="font-bold text-gray-800 dark:text-gray-200">0</span>
           </div>
-          <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm border border-gray-100 dark:border-transparent">
+          <div class="sidebar-stat-box flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm border border-gray-100 dark:border-transparent">
             <span class="text-gray-600 dark:text-gray-400">Completadas</span>
             <span id="sidebar-stat-completadas" class="font-bold text-gray-800 dark:text-gray-200">0</span>
           </div>
@@ -298,10 +350,10 @@
       <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
         <h1 class="text-2xl font-bold"><span class="text-gray-800 dark:text-purple-300">Tareas</span></h1>
         <div class="flex items-center gap-2 flex-wrap">
-          <div class="flex gap-1 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-lg p-1">
-            <button data-filter="todas"       class="tab px-3 py-1 rounded-md text-xs font-medium bg-gray-700 dark:bg-purple-700 text-white transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500 focus:ring-inset">Todas</button>
-            <button data-filter="pendientes"  class="tab px-3 py-1 rounded-md text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500 focus:ring-inset">Pendientes</button>
-            <button data-filter="completadas" class="tab px-3 py-1 rounded-md text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500 focus:ring-inset">Completadas</button>
+          <div id="tabs-container" class="flex gap-1 border border-gray-200 dark:border-gray-800 rounded-lg p-1">
+            <button data-filter="todas"       class="tab tab-active px-3 py-1 rounded-md text-xs font-medium text-white transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500 focus:ring-inset">Todas</button>
+            <button data-filter="pendientes"  class="tab px-3 py-1 rounded-md text-xs font-medium hover:text-gray-800 dark:hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500 focus:ring-inset">Pendientes</button>
+            <button data-filter="completadas" class="tab px-3 py-1 rounded-md text-xs font-medium hover:text-gray-800 dark:hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500 focus:ring-inset">Completadas</button>
           </div>
           <button id="btn-marcar-todas" class="px-3 py-1 rounded-md text-xs font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 bg-white dark:bg-transparent hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500" title="Marcar todas como completadas">✓ Todas</button>
           <button id="btn-borrar-completadas" class="px-3 py-1 rounded-md text-xs font-medium border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-red-400/80 bg-white dark:bg-transparent hover:bg-gray-200 dark:hover:bg-red-900/30 hover:border-gray-400 dark:hover:border-red-500/50 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-red-500" title="Borrar todas las completadas">🗑️ Completadas</button>

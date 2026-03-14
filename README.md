@@ -167,6 +167,19 @@ Verás la tarea en la sección **Pendientes** con chips `#setup` y `#work`, y es
 
 ---
 
+## 🧪 Resultados de pruebas
+
+| Prueba | Resultado | Comportamiento |
+|--------|-----------|----------------|
+| **Lista vacía** | ✅ | Al no haber tareas, se muestran los mensajes "¡Sin tareas pendientes!" y "Aún no has marcado ninguna tarea como completada" según corresponda. En el primer arranque se cargan tareas de ejemplo. |
+| **Añadir tarea sin título** | ✅ | La validación impide enviar el formulario: aparece el mensaje "La tarea no puede estar vacía." y el campo se resalta en rojo durante ~1,2 s. |
+| **Título muy largo** | ✅ | El input tiene `maxlength="140"`, por lo que el título queda limitado a 140 caracteres. No se puede escribir más. |
+| **Marcar varias como completadas** | ✅ | Se puede marcar una a una con el check o usar "✓ Todas" para marcar todas las pendientes. Las tareas se mueven a la sección Completadas. |
+| **Eliminar varias tareas** | ✅ | Se puede eliminar individualmente con el icono 🗑️ o en bloque con "🗑️ Completadas". Hay animación de salida. |
+| **Persistencia (recargar)** | ✅ | Las tareas se guardan en `localStorage` en cada cambio. Al recargar la página, los datos se mantienen. |
+
+---
+
 ## 🛠️ Tecnologías
 
 - **HTML5** — estructura semántica (header, main, aside, footer), plantilla `<template>`.
