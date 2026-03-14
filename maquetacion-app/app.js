@@ -636,7 +636,7 @@ function crearElementoTareaFallback(tarea, opciones) {
           )
           .join("")}</div>`
       : "";
-  li.innerHTML = `<div class="task-row"><div class="task-check" aria-label="Marcar tarea como completada">✓</div><div class="task-title cursor-pointer" title="Doble clic para editar">${escapeHTML(titulo)}</div><button class="btn-eliminar" aria-label="Eliminar tarea">🗑️</button></div>${chipsHTML}`;
+  li.innerHTML = `<div class="task-row"><button type="button" class="task-check" aria-label="Marcar tarea como completada">✓</button><div class="task-title cursor-pointer" title="Doble clic para editar">${escapeHTML(titulo)}</div><button class="btn-eliminar" aria-label="Eliminar tarea">🗑️</button></div>${chipsHTML}`;
   li.querySelector(".task-check")?.addEventListener("click", () => alternarTareaCompletada(tarea.id));
   li.querySelector(".btn-eliminar")?.addEventListener("click", () => eliminarTarea(tarea.id));
   li.querySelector(".task-title")?.addEventListener("dblclick", () => iniciarEdicionTarea(tarea.id));
@@ -749,8 +749,9 @@ function actualizarChipsHashtag() {
 
   const botonTodas = document.createElement("button");
   botonTodas.textContent = "Todas";
+  botonTodas.setAttribute("aria-label", "Mostrar todas las etiquetas");
   botonTodas.className =
-    "px-3 py-1 rounded-full text-xs border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:border-gray-400 dark:hover:border-gray-400 transition";
+    "px-3 py-1 rounded-full text-xs border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:border-gray-400 dark:hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500 focus:ring-offset-1 transition";
   if (!etiquetaActiva) {
     botonTodas.classList.add("bg-gray-100", "text-gray-800", "border-gray-300", "dark:bg-gray-800", "dark:text-gray-200", "dark:border-transparent");
   }
@@ -765,8 +766,9 @@ function actualizarChipsHashtag() {
     const boton = document.createElement("button");
     boton.textContent = `#${tag}`;
     boton.dataset.tag = tag;
+    boton.setAttribute("aria-label", `Filtrar por etiqueta ${tag}`);
     boton.className =
-      "px-3 py-1 rounded-full text-xs border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:border-gray-400 dark:hover:border-gray-400 transition";
+      "px-3 py-1 rounded-full text-xs border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:border-gray-400 dark:hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500 focus:ring-offset-1 transition";
     if (etiquetaActiva === tag) {
       boton.classList.add("bg-gray-500", "text-white", "border-gray-400", "dark:bg-purple-700", "dark:border-purple-400");
     }
