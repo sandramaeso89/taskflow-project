@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <style>
+    
     /* Variables CSS: colores, tipografía y espaciado */
     :root {
       /* Colores */
@@ -270,11 +271,15 @@
     <main class="layout-main flex-1 min-w-0 p-8 overflow-y-auto">
 
       <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
-        <h1 class="text-2xl font-bold">Mis <span class="text-purple-300">Tareas</span></h1>
-        <div class="flex gap-1 bg-gray-900 border border-gray-800 rounded-lg p-1">
-          <button data-filter="todas"       class="tab px-3 py-1 rounded-md text-xs font-medium bg-purple-700 text-white transition duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-inset">Todas</button>
-          <button data-filter="pendientes"  class="tab px-3 py-1 rounded-md text-xs font-medium text-gray-400 hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-inset">Pendientes</button>
-          <button data-filter="completadas" class="tab px-3 py-1 rounded-md text-xs font-medium text-gray-400 hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-inset">Completadas</button>
+        <h1 class="text-2xl font-bold"><span class="text-purple-300">Tareas</span></h1>
+        <div class="flex items-center gap-2 flex-wrap">
+          <div class="flex gap-1 bg-gray-900 border border-gray-800 rounded-lg p-1">
+            <button data-filter="todas"       class="tab px-3 py-1 rounded-md text-xs font-medium bg-purple-700 text-white transition duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-inset">Todas</button>
+            <button data-filter="pendientes"  class="tab px-3 py-1 rounded-md text-xs font-medium text-gray-400 hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-inset">Pendientes</button>
+            <button data-filter="completadas" class="tab px-3 py-1 rounded-md text-xs font-medium text-gray-400 hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-inset">Completadas</button>
+          </div>
+          <button id="btn-marcar-todas" class="px-3 py-1 rounded-md text-xs font-medium border border-gray-700 text-gray-400 hover:bg-gray-800 hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500" title="Marcar todas como completadas">✓ Todas</button>
+          <button id="btn-borrar-completadas" class="px-3 py-1 rounded-md text-xs font-medium border border-gray-700 text-red-400/80 hover:bg-red-900/30 hover:border-red-500/50 transition duration-200 focus:outline-none focus:ring-2 focus:ring-red-500" title="Borrar todas las completadas">🗑️ Completadas</button>
         </div>
       </div>
 
@@ -384,7 +389,7 @@
       <li class="task-card">
         <div class="task-row">
           <div class="task-check" aria-label="Marcar tarea como completada">✓</div>
-          <div class="task-title"></div>
+          <div class="task-title cursor-pointer" title="Doble clic para editar"></div>
           <button class="btn-eliminar" aria-label="Eliminar tarea">🗑️</button>
         </div>
         <div class="task-tags mt-1 flex flex-wrap gap-1 text-[10px] text-gray-300"></div>

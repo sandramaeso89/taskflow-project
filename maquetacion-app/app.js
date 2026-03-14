@@ -256,6 +256,40 @@ function validarTextoNuevaTarea(textoCrudo) {
 }
 
 /**
+ * Valida el texto al editar una tarea (excluye la tarea actual del chequeo de duplicados).
+ * @param {string} textoCrudo
+ * @param {number} idTareaExcluir - ID de la tarea que se está editando
+ * @returns {{esValido:boolean, mensajeError:string|null, textoNormalizado:string}}
+ */
+function validarTextoEdicion(textoCrudo, idTareaExcluir) {
+  const textoNormalizado = textoCrudo.trim();
+
+  if (textoNormalizado.length === 0) {
+    return { esValido: false, mensajeError: "La tarea no puede estar vacía.", textoNormalizado };
+  }
+
+  if (textoNormalizado.length < 3) {
+    return { esValido: false, mensajeError: "La tarea debe tener al menos 3 caracteres.", textoNormalizado };
+  }
+
+  const soloSimbolos = !/[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]/.test(textoNormalizado);
+  if (soloSimbolos) {
+    return { esValido: false, mensajeError: "La tarea debe contener algún carácter alfanumérico.", textoNormalizado };
+  }
+
+  const yaExiste = tareas.some(
+    (tarea) =>
+      tarea.id !== idTareaExcluir &&
+      (tarea.title ?? tarea.texto ?? "").trim().toLowerCase() === textoNormalizado.toLowerCase()
+  );
+  if (yaExiste) {
+    return { esValido: false, mensajeError: "Ya existe una tarea con ese mismo texto.", textoNormalizado };
+  }
+
+  return { esValido: true, mensajeError: null, textoNormalizado };
+}
+
+/**
  * Crea una nueva tarea a partir de un texto ya validado.
  * @param {string} titulo - Texto de la tarea
  * @returns {{id:number,title:string,completed:boolean,createdAt:number}}
@@ -306,6 +340,94 @@ function manejarSubmitNuevaTarea() {
 }
 
 /**
+ * Inicia la edición del título de una tarea (doble clic).
+ * Reemplaza el texto por un input; al guardar actualiza la tarea y los hashtags.
+ * @param {number} idTarea
+ */
+function iniciarEdicionTarea(idTarea) {
+  const tarea = tareas.find((t) => t.id === idTarea);
+  if (!tarea) return;
+
+  const li = document.querySelector(`[data-id="${idTarea}"]`);
+  const tituloEl = li?.querySelector(".task-title");
+  if (!tituloEl) return;
+
+  const tituloActual = tarea.title ?? tarea.texto ?? "";
+  const input = document.createElement("input");
+  input.type = "text";
+  input.value = tituloActual;
+  input.className =
+    "w-full bg-transparent border-b-2 border-purple-500 outline-none text-inherit font-medium text-[0.95rem] py-0.5";
+  input.style.minWidth = "80px";
+
+  const guardar = () => {
+    const valor = input.value.trim();
+    if (valor === tituloActual) {
+      cancelar();
+      return;
+    }
+
+    const { esValido, mensajeError, textoNormalizado } = validarTextoEdicion(valor, idTarea);
+    if (!esValido) {
+      mostrarToast(mensajeError || "Texto no válido");
+      return;
+    }
+
+    tarea.title = textoNormalizado;
+    guardarTareasEnLocalStorage(tareas);
+
+    const hashtags = extraerHashtags(textoNormalizado);
+    li.dataset.hashtags = hashtags.join(" ");
+    tituloEl.innerHTML = "";
+    tituloEl.textContent = textoNormalizado;
+
+    let tagsEl = li.querySelector(".task-tags");
+    if (hashtags.length > 0) {
+      if (!tagsEl) {
+        tagsEl = document.createElement("div");
+        tagsEl.className = "task-tags mt-1 flex flex-wrap gap-1 text-[10px] text-gray-300";
+        li.appendChild(tagsEl);
+      }
+      tagsEl.innerHTML = hashtags
+        .map(
+          (tag) =>
+            `<span class="tag-chip px-2 py-0.5 rounded-full bg-gray-800 border border-gray-700">#${escapeHTML(tag)}</span>`
+        )
+        .join("");
+    } else if (tagsEl) {
+      tagsEl.innerHTML = "";
+    }
+
+    actualizarChipsHashtag();
+    mostrarToast("Tarea actualizada");
+  };
+
+  const cancelar = () => {
+    tituloEl.innerHTML = "";
+    tituloEl.textContent = tituloActual;
+    input.remove();
+  };
+
+  tituloEl.innerHTML = "";
+  tituloEl.appendChild(input);
+  input.focus();
+  input.select();
+
+  input.addEventListener("blur", guardar);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      input.removeEventListener("blur", guardar);
+      guardar();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      input.removeEventListener("blur", guardar);
+      cancelar();
+    }
+  });
+}
+
+/**
  * Elimina una tarea por id y actualiza la interfaz.
  * @param {number} idTarea
  */
@@ -347,6 +469,63 @@ function alternarTareaCompletada(idTarea) {
   actualizarContadores();
   actualizarChipsHashtag();
   aplicarFiltrosCombinados();
+}
+
+/**
+ * Marca todas las tareas como completadas y mueve sus elementos al listado de completadas.
+ */
+function marcarTodasCompletadas() {
+  const pendientes = tareas.filter((t) => !(t.completed ?? t.completada));
+  if (pendientes.length === 0) {
+    mostrarToast("No hay tareas pendientes");
+    return;
+  }
+
+  pendientes.forEach((t) => (t.completed = true));
+  guardarTareasEnLocalStorage(tareas);
+
+  if (listaPendientes && listaCompletadas) {
+    const cards = listaPendientes.querySelectorAll(`.${CLASE_TASK_CARD}`);
+    cards.forEach((el) => {
+      el.classList.add(CLASE_DONE);
+      listaCompletadas.appendChild(el);
+    });
+  }
+
+  actualizarContadores();
+  actualizarChipsHashtag();
+  actualizarMensajesVacio();
+  aplicarFiltrosCombinados();
+  mostrarToast("Todas marcadas como completadas");
+}
+
+/**
+ * Elimina todas las tareas completadas.
+ */
+function borrarTodasCompletadas() {
+  const completadas = tareas.filter((t) => t.completed ?? t.completada);
+  if (completadas.length === 0) {
+    mostrarToast("No hay tareas completadas para borrar");
+    return;
+  }
+
+  const idsBorrar = completadas.map((t) => t.id);
+  tareas = tareas.filter((t) => !(t.completed ?? t.completada));
+  guardarTareasEnLocalStorage(tareas);
+
+  idsBorrar.forEach((id) => {
+    const el = document.querySelector(`[data-id="${id}"]`);
+    if (el) {
+      el.classList.add("saliendo");
+      setTimeout(() => el.remove(), DURACION_ANIMACION_ELIMINAR_MS);
+    }
+  });
+
+  actualizarContadores();
+  actualizarChipsHashtag();
+  actualizarMensajesVacio();
+  aplicarFiltrosCombinados();
+  mostrarToast(`${completadas.length} tarea(s) eliminada(s)`);
 }
 
 // ── 6. Renderizado de tareas ──
@@ -417,6 +596,10 @@ function crearElementoTarea(tarea, opciones) {
     botonEliminar.addEventListener("click", () => eliminarTarea(tarea.id));
   }
 
+  if (tituloEl) {
+    tituloEl.addEventListener("dblclick", () => iniciarEdicionTarea(tarea.id));
+  }
+
   if (opciones?.resaltar) {
     li.style.transform = "scale(0.96)";
     li.style.opacity = "0";
@@ -446,16 +629,17 @@ function crearElementoTareaFallback(tarea, opciones) {
   li.dataset.hashtags = hashtags.join(" ");
   const chipsHTML =
     hashtags.length > 0
-      ? `<div class="mt-1 flex flex-wrap gap-1 text-[10px] text-gray-300">${hashtags
+      ? `<div class="task-tags mt-1 flex flex-wrap gap-1 text-[10px] text-gray-300">${hashtags
           .map(
             (tag) =>
               `<span class="tag-chip px-2 py-0.5 rounded-full bg-gray-800 border border-gray-700">#${escapeHTML(tag)}</span>`
           )
           .join("")}</div>`
       : "";
-  li.innerHTML = `<div class="task-row"><div class="task-check" aria-label="Marcar tarea como completada">✓</div><div class="task-title">${escapeHTML(titulo)}</div><button class="btn-eliminar" aria-label="Eliminar tarea">🗑️</button></div>${chipsHTML}`;
+  li.innerHTML = `<div class="task-row"><div class="task-check" aria-label="Marcar tarea como completada">✓</div><div class="task-title cursor-pointer" title="Doble clic para editar">${escapeHTML(titulo)}</div><button class="btn-eliminar" aria-label="Eliminar tarea">🗑️</button></div>${chipsHTML}`;
   li.querySelector(".task-check")?.addEventListener("click", () => alternarTareaCompletada(tarea.id));
   li.querySelector(".btn-eliminar")?.addEventListener("click", () => eliminarTarea(tarea.id));
+  li.querySelector(".task-title")?.addEventListener("dblclick", () => iniciarEdicionTarea(tarea.id));
   if (opciones?.resaltar) {
     li.style.transform = "scale(0.96)";
     li.style.opacity = "0";
@@ -733,6 +917,11 @@ function inicializarEventos() {
       aplicarFiltroDeEstado(filtro);
     });
   });
+
+  const btnMarcarTodas = document.getElementById("btn-marcar-todas");
+  const btnBorrarCompletadas = document.getElementById("btn-borrar-completadas");
+  if (btnMarcarTodas) btnMarcarTodas.addEventListener("click", marcarTodasCompletadas);
+  if (btnBorrarCompletadas) btnBorrarCompletadas.addEventListener("click", borrarTodasCompletadas);
 }
 
 /**
