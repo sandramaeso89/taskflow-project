@@ -313,7 +313,7 @@ function manejarSubmitNuevaTarea() {
   const { esValido, mensajeError, textoNormalizado } = validarTextoNuevaTarea(inputTarea.value);
 
   if (!esValido) {
-    inputTarea.style.borderColor = "#ff6584";
+    inputTarea.style.borderColor = document.documentElement.classList.contains("dark") ? "#ff6584" : "#6b7280";
     inputTarea.title = mensajeError || "";
     if (inputTareaError) {
       inputTareaError.textContent = mensajeError || "";
@@ -357,7 +357,7 @@ function iniciarEdicionTarea(idTarea) {
   input.type = "text";
   input.value = tituloActual;
   input.className =
-    "w-full bg-transparent border-b-2 border-purple-500 outline-none text-inherit font-medium text-[0.95rem] py-0.5";
+    "w-full bg-transparent border-b-2 border-gray-500 dark:border-purple-500 outline-none text-inherit font-medium text-[0.95rem] py-0.5";
   input.style.minWidth = "80px";
 
   const guardar = () => {
@@ -391,7 +391,7 @@ function iniciarEdicionTarea(idTarea) {
       tagsEl.innerHTML = hashtags
         .map(
           (tag) =>
-            `<span class="tag-chip px-2 py-0.5 rounded-full bg-gray-800 border border-gray-700">#${escapeHTML(tag)}</span>`
+            `<span class="tag-chip px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-medium">#${escapeHTML(tag)}</span>`
         )
         .join("");
     } else if (tagsEl) {
@@ -580,7 +580,7 @@ function crearElementoTarea(tarea, opciones) {
     tagsEl.innerHTML = hashtags
       .map(
         (tag) =>
-          `<span class="tag-chip px-2 py-0.5 rounded-full bg-gray-800 border border-gray-700">#${escapeHTML(tag)}</span>`
+          `<span class="tag-chip px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-medium">#${escapeHTML(tag)}</span>`
       )
       .join("");
   } else if (tagsEl) {
@@ -632,7 +632,7 @@ function crearElementoTareaFallback(tarea, opciones) {
       ? `<div class="task-tags mt-1 flex flex-wrap gap-1 text-[10px] text-gray-300">${hashtags
           .map(
             (tag) =>
-              `<span class="tag-chip px-2 py-0.5 rounded-full bg-gray-800 border border-gray-700">#${escapeHTML(tag)}</span>`
+              `<span class="tag-chip px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-medium">#${escapeHTML(tag)}</span>`
           )
           .join("")}</div>`
       : "";
@@ -750,9 +750,9 @@ function actualizarChipsHashtag() {
   const botonTodas = document.createElement("button");
   botonTodas.textContent = "Todas";
   botonTodas.className =
-    "px-3 py-1 rounded-full text-xs border border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-400 transition";
+    "px-3 py-1 rounded-full text-xs border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:border-gray-400 dark:hover:border-gray-400 transition";
   if (!etiquetaActiva) {
-    botonTodas.classList.add("bg-gray-800", "text-gray-200");
+    botonTodas.classList.add("bg-gray-100", "text-gray-800", "border-gray-300", "dark:bg-gray-800", "dark:text-gray-200", "dark:border-transparent");
   }
   botonTodas.addEventListener("click", () => {
     etiquetaActiva = null;
@@ -766,9 +766,9 @@ function actualizarChipsHashtag() {
     boton.textContent = `#${tag}`;
     boton.dataset.tag = tag;
     boton.className =
-      "px-3 py-1 rounded-full text-xs border border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-400 transition";
+      "px-3 py-1 rounded-full text-xs border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:border-gray-400 dark:hover:border-gray-400 transition";
     if (etiquetaActiva === tag) {
-      boton.classList.add("bg-purple-700", "text-white", "border-purple-400");
+      boton.classList.add("bg-gray-500", "text-white", "border-gray-400", "dark:bg-purple-700", "dark:border-purple-400");
     }
     boton.addEventListener("click", () => {
       etiquetaActiva = etiquetaActiva === tag ? null : tag;
@@ -788,9 +788,11 @@ function aplicarFiltroDeEstado(nuevoFiltro) {
 
   tabsFiltro.forEach((tab) => {
     const esActivo = tab.dataset.filter === nuevoFiltro;
-    tab.classList.toggle("bg-purple-700", esActivo);
+    tab.classList.toggle("bg-gray-700", esActivo);
+    tab.classList.toggle("dark:bg-purple-700", esActivo);
     tab.classList.toggle("text-white", esActivo);
-    tab.classList.toggle("text-gray-400", !esActivo);
+    tab.classList.toggle("text-gray-500", !esActivo);
+    tab.classList.toggle("dark:text-gray-400", !esActivo);
   });
 
   if (sectionPendientes && sectionCompletadas) {
@@ -835,18 +837,12 @@ function alternarTema() {
   const esOscuro = document.documentElement.classList.contains("dark");
   btnTema.textContent = esOscuro ? "🌙" : "☀️";
 
-  const { body } = document;
-  if (!body) return;
+  try { localStorage.setItem("taskflow-tema", esOscuro ? "dark" : "light"); } catch (_) {}
+}
 
-  // Tema oscuro como valor predeterminado
-  if (esOscuro) {
-    body.classList.add("bg-gray-950", "text-gray-300");
-    body.classList.remove("bg-gray-100", "text-gray-900");
-  } else {
-    // Tema claro con contraste suave
-    body.classList.remove("bg-gray-950", "text-gray-300");
-    body.classList.add("bg-gray-100", "text-gray-900");
-  }
+function sincronizarIconoTema() {
+  if (!btnTema) return;
+  btnTema.textContent = document.documentElement.classList.contains("dark") ? "\u{1F319}" : "\u2600\uFE0F";
 }
 
 // ── 9. Inicialización de la aplicación ──
@@ -929,6 +925,7 @@ function inicializarEventos() {
  */
 function inicializarTaskFlow() {
   if (!validarDOMRequerido()) return;
+  sincronizarIconoTema();
   tareas = cargarTareasPersistidas();
   if (tareas.length === 0) {
     tareas = [...TAREAS_DE_EJEMPLO];
