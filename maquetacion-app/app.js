@@ -788,11 +788,8 @@ function aplicarFiltroDeEstado(nuevoFiltro) {
 
   tabsFiltro.forEach((tab) => {
     const esActivo = tab.dataset.filter === nuevoFiltro;
-    tab.classList.toggle("bg-gray-700", esActivo);
-    tab.classList.toggle("dark:bg-purple-700", esActivo);
+    tab.classList.toggle("tab-active", esActivo);
     tab.classList.toggle("text-white", esActivo);
-    tab.classList.toggle("text-gray-500", !esActivo);
-    tab.classList.toggle("dark:text-gray-400", !esActivo);
   });
 
   if (sectionPendientes && sectionCompletadas) {
