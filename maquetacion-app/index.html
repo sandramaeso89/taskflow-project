@@ -1,26 +1,77 @@
 <!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="es">
 <head>
+  <!-- Restaura tema guardado en localStorage antes del primer paint -->
+  <script>
+    (function(){
+      var s = localStorage.getItem('taskflow-tema');
+      document.documentElement.classList.toggle('dark', s !== 'light');
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TaskFlow — Sandra Maeso</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <!-- Tailwind CSS vía CDN con dark mode por clase -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] } } }
+    }
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    
-    /* Variables CSS: colores, tipografía y espaciado */
+    /* ═══════════════════════════════════════════════════════════════
+       TEMA CLARO — Centraliza aquí todos los colores para cambiarlos
+       ═══════════════════════════════════════════════════════════════ */
     :root {
-      /* Colores */
+      --light-bg-body: #ffffff;
+      --light-bg-header: #ffffff;
+      --light-bg-sidebar: #ffffff;
+      --light-bg-card: #ffffff;
+      --light-bg-card-hover: #fafafa;
+      --light-bg-card-done: #f9fafb;
+      --light-bg-input: #f9fafb;
+      --light-bg-stats-inner: #f9fafb;
+      --light-bg-badge: #f3f4f6;
+      --light-bg-button: #4b5563;
+      --light-bg-button-hover: #374151;
+      --light-border: #e5e7eb;
+      --light-border-light: #f3f4f6;
+      --light-text: #111827;
+      --light-text-muted: #6b7280;
+      --light-text-subtle: #9ca3af;
+      --light-check-border: #d1d5db;
+      --light-check-done: #9ca3af;
+      --light-progress-from: #9ca3af;
+      --light-progress-to: #6b7280;
+      --light-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Aplicar variables del tema claro al layout */
+    html:not(.dark) body { background: var(--light-bg-body) !important; }
+    html:not(.dark) header { background: var(--light-bg-header) !important; border-color: var(--light-border) !important; }
+    html:not(.dark) aside { background: var(--light-bg-sidebar) !important; border-color: var(--light-border) !important; }
+    html:not(.dark) main { background: var(--light-bg-body) !important; }
+    html:not(.dark) footer { background: var(--light-bg-sidebar) !important; border-color: var(--light-border) !important; }
+    html:not(.dark) .stats-card { background: var(--light-bg-card) !important; border-color: var(--light-border) !important; }
+    html:not(.dark) .stats-card span { color: var(--light-text-muted) !important; }
+    html:not(.dark) .stats-card .font-bold { color: var(--light-text) !important; }
+    html:not(.dark) [id^="sidebar-stat"] { color: var(--light-text) !important; }
+    html:not(.dark) #progress-fill { background: linear-gradient(to right, var(--light-progress-from), var(--light-progress-to)) !important; }
+    html:not(.dark) .progress-track { background: var(--light-bg-badge) !important; }
+
+    /* Variables globales (tema oscuro y utilidades) */
+    :root {
       --color-primario: rgb(126 34 206);
       --color-primario-hover: rgb(168 85 247);
       --color-fondo-oscuro: rgb(3 7 18);
-      --color-fondo-claro: #f9fafb;
-      --color-texto-oscuro: rgb(209 213 219);
-      --color-texto-claro: #111827;
+      --color-fondo-claro: var(--light-bg-card);
+      --color-texto-claro: var(--light-text);
       --color-borde-oscuro: rgb(31 41 55);
-      --color-borde-claro: #e5e7eb;
+      --color-borde-claro: var(--light-border);
       --color-exito: rgb(52 211 153);
       --color-exito-fondo: rgba(52, 211, 153, 0.05);
       --color-error: #ff6584;
@@ -110,24 +161,25 @@
     }
     html.dark .task-card.done .task-title { text-decoration: line-through; color: rgb(107 114 128); }
 
-    /* Tema claro: tarjetas más claras y suaves */
+    /* Tema claro: usa variables centralizadas */
     html:not(.dark) .task-card {
-      background: var(--color-fondo-claro);
-      border: 1px solid var(--color-borde-claro);
-      color: var(--color-texto-claro);
+      background: var(--light-bg-card);
+      border: 1px solid var(--light-border);
+      color: var(--light-text);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
     html:not(.dark) .task-card:hover {
-      border-color: var(--color-primario-hover);
-      background: #939496;
+      border-color: var(--light-check-border);
+      background: var(--light-bg-card-hover);
       transform: translateY(-2px);
-      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.10);
+      box-shadow: var(--light-shadow);
     }
     html:not(.dark) .task-card.done {
-      opacity: 0.7;
-      border-color: var(--color-exito);
-      background: #777a78;
+      opacity: 0.9;
+      border-color: var(--light-border);
+      background: var(--light-bg-card-done);
     }
-    html:not(.dark) .task-card.done .task-title { text-decoration: line-through; color: #4b5563; }
+    html:not(.dark) .task-card.done .task-title { text-decoration: line-through; color: var(--light-text-muted); }
     .task-row { display: flex; align-items: center; gap: 0.75rem; }
     .task-check {
       width: 20px; height: 20px; border-radius: 50%;
@@ -136,48 +188,21 @@
       font-size: 0.7rem; cursor: pointer;
       transition: background 0.2s, border-color 0.2s;
     }
-    .task-card.done .task-check { background: rgb(52 211 153); border-color: rgb(52 211 153); }
+    html:not(.dark) .task-check { border-color: var(--light-check-border); }
+    html.dark .task-card.done .task-check { background: rgb(52 211 153); border-color: rgb(52 211 153); }
+    html:not(.dark) .task-card.done .task-check { background: var(--light-check-done); border-color: var(--light-check-done); }
     .task-title { flex: 1; font-weight: 500; font-size: 0.95rem; }
-
-    /* Tarjetas de estadísticas: aclarar en tema claro */
-    html:not(.dark) .stats-card {
-      background: #cac7c7;
-      border-color: var(--color-borde-claro);
-      color: var(--color-texto-claro);
-    }
-    html:not(.dark) .stats-card span.text-xs {
-      color: #9ca3b0; /* gris-500 */
-    }
-    html:not(.dark) .stats-card:hover {
-      background: #898a8c;
-      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
-    }
-
-    /* Chips de etiquetas */
-    .tag-chip {
-      font-weight: 500;
-    }
-    html.dark .tag-chip {
-      color: var(--color-texto-oscuro);
-      background-color: var(--color-fondo-oscuro);
-      border-color: var(--color-borde-oscuro);
-    }
-    html:not(.dark) .tag-chip {
-      color: #374151;
-      background-color: var(--color-borde-claro);
-      border-color: #d1d5db;
-    }
 
     /* Responsive: pantallas pequeñas */
     @media (max-width: 767px) {
       .layout-main {
-        padding: var(--spacing-md);
+        padding: 1rem;
       }
       .header-responsive {
-        padding-left: var(--spacing-md);
-        padding-right: var(--spacing-md);
+        padding-left: 1rem;
+        padding-right: 1rem;
         flex-wrap: wrap;
-        gap: var(--spacing-sm);
+        gap: 0.5rem;
       }
       .header-logo {
         font-size: 1.75rem;
@@ -189,80 +214,80 @@
         max-width: 160px;
       }
       .modal-content {
-        padding: var(--spacing-md);
-        margin: var(--spacing-md);
+        padding: 1rem;
+        margin: 1rem;
       }
       .footer-responsive {
-        padding-left: var(--spacing-md);
-        padding-right: var(--spacing-md);
+        padding-left: 1rem;
+        padding-right: 1rem;
       }
     }
 
   </style>
 </head>
 
-<body class="bg-gray-950 text-gray-300 min-h-screen grid grid-rows-[auto_1fr_auto]">
+<body class="min-h-screen grid grid-rows-[auto_1fr_auto] bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-300 font-sans antialiased">
 
   <!-- Encabezado -->
-  <header class="header-responsive bg-gray-900 border-b border-gray-800 px-8 py-4 flex items-center justify-between sticky top-0 z-50">
-    <div class="header-logo text-4xl md:text-6xl font-bold text-purple-300 leading-none">Task<span class="font-normal text-gray-500">Flow</span></div>
+  <header class="header-responsive bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-8 py-4 flex items-center justify-between sticky top-0 z-50 shadow-sm dark:shadow-none">
+    <div class="header-logo text-4xl md:text-6xl font-bold text-gray-800 dark:text-purple-300 leading-none">Task<span class="font-normal text-gray-500">Flow</span></div>
 
     <div class="header-actions flex items-center gap-3">
       <div class="relative">
-        <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 text-sm">🔍</span>
+        <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm">🔍</span>
         <input
           type="text"
           id="input-buscar"
           placeholder="Buscar tarea…"
-          class="input-buscar-resp bg-gray-800 border border-gray-700 rounded-lg pl-8 pr-3 py-1.5 text-base text-gray-300 placeholder-gray-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition duration-200 w-56 md:w-56"
+          class="input-buscar-resp bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg pl-8 pr-3 py-1.5 text-base text-gray-900 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-600 focus:outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500 dark:focus:border-purple-500 dark:focus:ring-purple-500 transition duration-200 w-56 md:w-56"
         />
       </div>
 
       <button
         id="btn-tema"
-        class="text-lg px-2.5 py-1 rounded-lg border border-gray-700 hover:border-purple-400 hover:text-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
+        class="text-lg px-2.5 py-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-transparent hover:border-gray-500 hover:text-gray-700 dark:hover:border-purple-400 dark:hover:text-purple-300 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500 transition duration-200"
         title="Alternar modo oscuro"
       >🌙</button>
 
       <button
         id="btn-nueva-tarea"
-        class="bg-purple-700 hover:bg-purple-500 active:scale-95 text-white text-sm font-semibold px-4 py-1.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 transition duration-200"
+        class="bg-gray-600 hover:bg-gray-500 dark:bg-purple-700 dark:hover:bg-purple-500 active:scale-95 text-white text-sm font-semibold px-4 py-1.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-purple-400 transition duration-200"
       >+ Nueva tarea</button>
 
-      <div class="w-9 h-9 rounded-full bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center font-bold text-xs text-white cursor-pointer select-none">SM</div>
+      <div class="w-9 h-9 rounded-full bg-gray-600 dark:bg-gradient-to-br dark:from-purple-600 dark:to-pink-500 flex items-center justify-center font-bold text-xs text-white cursor-pointer select-none">SM</div>
     </div>
   </header>
 
   <!-- Distribución principal (estadísticas izquierda, contenido derecha) -->
   <div class="layout-principal flex min-h-0 flex-row">
     <!-- Barra lateral de estadísticas (izquierda) -->
-    <aside class="w-56 flex-shrink-0 bg-gray-900 border-r border-gray-800 p-5 flex flex-col gap-6">
+    <aside class="w-56 flex-shrink-0 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 p-5 flex flex-col gap-6 shadow-sm dark:shadow-none">
       <div>
-        <h3 class="text-xs text-gray-500 uppercase tracking-widest mb-3">Estadísticas</h3>
+        <h3 class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3">Estadísticas</h3>
         <div class="flex flex-col gap-1.5">
-          <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-800 text-sm">
-            <span class="text-gray-400">Total</span>
-            <span id="sidebar-stat-total" class="font-bold text-gray-200">0</span>
+          <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm border border-gray-100 dark:border-transparent">
+            <span class="text-gray-600 dark:text-gray-400">Total</span>
+            <span id="sidebar-stat-total" class="font-bold text-gray-800 dark:text-gray-200">0</span>
           </div>
-          <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-800 text-sm">
-            <span class="text-gray-400">Pendientes</span>
-            <span id="sidebar-stat-pendientes" class="font-bold text-gray-200">0</span>
+          <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm border border-gray-100 dark:border-transparent">
+            <span class="text-gray-600 dark:text-gray-400">Pendientes</span>
+            <span id="sidebar-stat-pendientes" class="font-bold text-gray-800 dark:text-gray-200">0</span>
           </div>
-          <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-800 text-sm">
-            <span class="text-gray-400">Completadas</span>
-            <span id="sidebar-stat-completadas" class="font-bold text-gray-200">0</span>
+          <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-sm border border-gray-100 dark:border-transparent">
+            <span class="text-gray-600 dark:text-gray-400">Completadas</span>
+            <span id="sidebar-stat-completadas" class="font-bold text-gray-800 dark:text-gray-200">0</span>
           </div>
         </div>
       </div>
 
       <div>
-        <h3 class="text-xs text-gray-500 uppercase tracking-widest mb-3">Progreso</h3>
+        <h3 class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-3">Progreso</h3>
         <div class="flex justify-between text-xs text-gray-500 mb-1.5">
           <span>Completadas</span>
           <span id="pct-label">0%</span>
         </div>
-        <div class="h-1.5 rounded-full bg-gray-800 overflow-hidden">
-          <div id="progress-fill" class="h-full rounded-full bg-gradient-to-r from-purple-600 to-emerald-400 transition-all duration-500" style="width:0%"></div>
+        <div class="progress-track h-1.5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+          <div id="progress-fill" class="h-full rounded-full bg-gradient-to-r from-gray-400 to-gray-600 dark:from-purple-600 dark:to-emerald-400 transition-all duration-500" style="width:0%"></div>
         </div>
       </div>
     </aside>
@@ -271,39 +296,39 @@
     <main class="layout-main flex-1 min-w-0 p-8 overflow-y-auto">
 
       <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
-        <h1 class="text-2xl font-bold"><span class="text-purple-300">Tareas</span></h1>
+        <h1 class="text-2xl font-bold"><span class="text-gray-800 dark:text-purple-300">Tareas</span></h1>
         <div class="flex items-center gap-2 flex-wrap">
-          <div class="flex gap-1 bg-gray-900 border border-gray-800 rounded-lg p-1">
-            <button data-filter="todas"       class="tab px-3 py-1 rounded-md text-xs font-medium bg-purple-700 text-white transition duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-inset">Todas</button>
-            <button data-filter="pendientes"  class="tab px-3 py-1 rounded-md text-xs font-medium text-gray-400 hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-inset">Pendientes</button>
-            <button data-filter="completadas" class="tab px-3 py-1 rounded-md text-xs font-medium text-gray-400 hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-inset">Completadas</button>
+          <div class="flex gap-1 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-lg p-1">
+            <button data-filter="todas"       class="tab px-3 py-1 rounded-md text-xs font-medium bg-gray-700 dark:bg-purple-700 text-white transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500 focus:ring-inset">Todas</button>
+            <button data-filter="pendientes"  class="tab px-3 py-1 rounded-md text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500 focus:ring-inset">Pendientes</button>
+            <button data-filter="completadas" class="tab px-3 py-1 rounded-md text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500 focus:ring-inset">Completadas</button>
           </div>
-          <button id="btn-marcar-todas" class="px-3 py-1 rounded-md text-xs font-medium border border-gray-700 text-gray-400 hover:bg-gray-800 hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500" title="Marcar todas como completadas">✓ Todas</button>
-          <button id="btn-borrar-completadas" class="px-3 py-1 rounded-md text-xs font-medium border border-gray-700 text-red-400/80 hover:bg-red-900/30 hover:border-red-500/50 transition duration-200 focus:outline-none focus:ring-2 focus:ring-red-500" title="Borrar todas las completadas">🗑️ Completadas</button>
+          <button id="btn-marcar-todas" class="px-3 py-1 rounded-md text-xs font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 bg-white dark:bg-transparent hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500" title="Marcar todas como completadas">✓ Todas</button>
+          <button id="btn-borrar-completadas" class="px-3 py-1 rounded-md text-xs font-medium border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-red-400/80 bg-white dark:bg-transparent hover:bg-gray-200 dark:hover:bg-red-900/30 hover:border-gray-400 dark:hover:border-red-500/50 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-red-500" title="Borrar todas las completadas">🗑️ Completadas</button>
         </div>
       </div>
 
       <div class="mb-8">
-        <h2 class="text-xs text-gray-500 uppercase tracking-widest mb-2">Etiquetas</h2>
-        <div id="filtro-etiquetas" class="flex flex-wrap gap-2 text-xs text-gray-400"></div>
+        <h2 class="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Etiquetas</h2>
+        <div id="filtro-etiquetas" class="flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400"></div>
       </div>
 
       <!-- Estadísticas en main -->
       <div class="flex gap-4 mb-8 flex-wrap">
-        <div class="stats-card flex-1 min-w-[100px] bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-2 hover:-translate-y-1 transition duration-200">
+        <div class="stats-card flex-1 min-w-[100px] bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl shadow-sm dark:shadow-none p-4 flex flex-col gap-2 hover:-translate-y-1 transition duration-200">
           <span class="text-xl">📝</span>
-          <span id="stat-total" class="text-3xl font-bold">0</span>
-          <span class="text-xs text-gray-500">Total</span>
+          <span id="stat-total" class="text-3xl font-bold text-gray-800 dark:text-white">0</span>
+          <span class="text-xs text-gray-400 dark:text-gray-500">Total</span>
         </div>
-        <div class="stats-card flex-1 min-w-[100px] bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-2 hover:-translate-y-1 transition duration-200">
+        <div class="stats-card flex-1 min-w-[100px] bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl shadow-sm dark:shadow-none p-4 flex flex-col gap-2 hover:-translate-y-1 transition duration-200">
           <span class="text-xl">⏳</span>
-          <span id="stat-pendientes" class="text-3xl font-bold">0</span>
-          <span class="text-xs text-gray-500">Pendientes</span>
+          <span id="stat-pendientes" class="text-3xl font-bold text-gray-800 dark:text-white">0</span>
+          <span class="text-xs text-gray-400 dark:text-gray-500">Pendientes</span>
         </div>
-        <div class="stats-card flex-1 min-w-[100px] bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-2 hover:-translate-y-1 transition duration-200">
+        <div class="stats-card flex-1 min-w-[100px] bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl shadow-sm dark:shadow-none p-4 flex flex-col gap-2 hover:-translate-y-1 transition duration-200">
           <span class="text-xl">✅</span>
-          <span id="stat-completadas" class="text-3xl font-bold">0</span>
-          <span class="text-xs text-gray-500">Completadas</span>
+          <span id="stat-completadas" class="text-3xl font-bold text-gray-800 dark:text-white">0</span>
+          <span class="text-xs text-gray-400 dark:text-gray-500">Completadas</span>
         </div>
       </div>
 
@@ -311,10 +336,10 @@
       <div id="section-pendientes" class="mb-8">
         <h2 class="text-base font-semibold mb-4 flex items-center gap-2">
           Pendientes
-          <span id="badge-pendientes" class="bg-gray-800 text-gray-400 text-xs rounded-full px-2.5 py-0.5 font-normal">0</span>
+          <span id="badge-pendientes" class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs rounded-full px-2.5 py-0.5 font-normal">0</span>
         </h2>
         <ul id="lista-pendientes">
-          <li id="empty-pendientes" class="text-center py-8 text-gray-600">
+          <li id="empty-pendientes" class="text-center py-8 text-gray-400 dark:text-gray-400">
             <span class="text-3xl block mb-2">🎉</span>¡Sin tareas pendientes!
           </li>
         </ul>
@@ -324,13 +349,13 @@
       <div id="section-completadas">
         <h2 class="text-base font-semibold mb-4 flex items-center gap-2">
           Completadas
-          <span id="badge-completadas" class="bg-gray-800 text-gray-400 text-xs rounded-full px-2.5 py-0.5 font-normal">0</span>
+          <span id="badge-completadas" class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs rounded-full px-2.5 py-0.5 font-normal">0</span>
         </h2>
         <ul id="lista-completadas">
-          <li id="empty-completadas" class="text-center py-8 text-gray-600">
+          <li id="empty-completadas" class="text-center py-8 text-gray-400 dark:text-gray-400">
             <span class="text-3xl block mb-2">📭</span>
             <p class="mb-1">Aún no has marcado ninguna tarea como completada.</p>
-            <p class="text-xs text-gray-500">Completa alguna tarea para que aparezca aquí.</p>
+            <p class="text-xs text-gray-500 dark:text-gray-500">Completa alguna tarea para que aparezca aquí.</p>
           </li>
         </ul>
       </div>
@@ -340,32 +365,32 @@
 
   <!-- Ventana modal -->
   <div id="modal-overlay" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4">
-    <div class="modal-content bg-gray-900 border border-gray-700 rounded-xl p-5 sm:p-6 w-[min(340px,90vw)] shadow-2xl shrink-0">
-      <h3 class="text-lg font-bold text-purple-300 mb-5">Nueva tarea</h3>
+    <div class="modal-content bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-5 sm:p-6 w-[min(340px,90vw)] shadow-2xl shrink-0">
+      <h3 class="text-lg font-bold text-gray-800 dark:text-purple-300 mb-5">Nueva tarea</h3>
       <form id="form-nueva-tarea" novalidate>
-        <label for="input-tarea" class="block text-sm text-gray-400 mb-1">Descripción de la tarea</label>
+        <label for="input-tarea" class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Descripción de la tarea</label>
         <input
           type="text"
           id="input-tarea"
           placeholder="¿Qué tienes que hacer?"
           maxlength="140"
-          class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-base text-gray-200 placeholder-gray-600 mb-5 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition duration-200"
+          class="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2.5 text-base text-gray-900 dark:text-gray-200 placeholder-gray-500 dark:placeholder-gray-600 mb-5 focus:outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500 dark:focus:border-purple-500 dark:focus:ring-purple-500 transition duration-200"
         />
         <p
           id="input-tarea-error"
-          class="text-xs text-red-400 mb-5"
+          class="text-xs text-gray-600 dark:text-red-400 mb-5"
           style="display:none"
         ></p>
         <div class="flex gap-3 justify-end">
           <button
             type="button"
             id="btn-cancelar"
-            class="bg-transparent border border-gray-700 text-gray-400 text-sm px-4 py-2 rounded-lg hover:border-gray-400 hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-200"
+            class="bg-transparent border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-400 text-sm px-4 py-2 rounded-lg hover:border-gray-500 dark:hover:border-gray-400 hover:text-gray-900 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-200"
           >Cancelar</button>
           <button
             type="submit"
             id="btn-anadir"
-            class="bg-purple-700 hover:bg-purple-500 active:scale-95 text-white text-sm font-semibold px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 transition duration-200"
+            class="bg-gray-600 hover:bg-gray-500 dark:bg-purple-700 dark:hover:bg-purple-500 active:scale-95 text-white text-sm font-semibold px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-purple-400 transition duration-200"
           >Añadir tarea</button>
         </div>
       </form>
@@ -373,12 +398,12 @@
   </div>
 
   <!-- Pie de página -->
-  <footer class="footer-responsive bg-gray-900 border-t border-gray-800 px-8 py-3 text-center text-xs text-gray-500">
+  <footer class="footer-responsive bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800 px-8 py-3 text-center text-xs text-gray-500 dark:text-gray-500">
     TaskFlow — Sandra Maeso · DAM · Ciberseguridad y Python
   </footer>
 
   <div id="toast"
-       class="fixed bottom-6 right-6 px-4 py-2 rounded-lg bg-gray-900 border border-gray-700 text-sm text-gray-200 shadow-2xl transition-opacity duration-300"
+       class="fixed bottom-6 right-6 px-4 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-sm text-gray-800 dark:text-gray-200 shadow-xl transition-opacity duration-300"
        style="opacity:0; pointer-events:none;">
     Tarea creada
   </div>
@@ -392,7 +417,7 @@
           <div class="task-title cursor-pointer" title="Doble clic para editar"></div>
           <button class="btn-eliminar" aria-label="Eliminar tarea">🗑️</button>
         </div>
-        <div class="task-tags mt-1 flex flex-wrap gap-1 text-[10px] text-gray-300"></div>
+        <div class="task-tags mt-1 flex flex-wrap gap-1 text-[10px] text-gray-400 dark:text-gray-400"></div>
       </li>
     </ul>
   </template>
