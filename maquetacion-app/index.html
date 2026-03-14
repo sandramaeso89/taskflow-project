@@ -234,12 +234,15 @@
     html:not(.dark) .task-card.done .task-title { text-decoration: line-through; color: var(--light-text-muted); }
     .task-row { display: flex; align-items: center; gap: 0.75rem; }
     .task-check {
-      width: 20px; height: 20px; border-radius: 50%;
+      width: 20px; height: 20px; min-width: 20px; border-radius: 50%;
       border: 2px solid rgb(55 65 81); flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
       font-size: 0.7rem; cursor: pointer;
+      padding: 0; background: transparent; appearance: none;
       transition: background 0.2s, border-color 0.2s;
     }
+    .task-check:focus-visible { outline: 2px solid rgb(126 34 206); outline-offset: 2px; }
+    html:not(.dark) .task-check:focus-visible { outline-color: #374151; }
     html:not(.dark) .task-check { border-color: var(--light-check-border); }
     html.dark .task-card.done .task-check { background: rgb(52 211 153); border-color: rgb(52 211 153); }
     html:not(.dark) .task-card.done .task-check { background: var(--light-check-done); border-color: var(--light-check-done); }
@@ -291,6 +294,7 @@
           type="text"
           id="input-buscar"
           placeholder="Buscar tarea…"
+          aria-label="Buscar tareas por texto o etiqueta"
           class="input-buscar-resp border border-gray-200 dark:border-gray-700 rounded-lg pl-8 pr-3 py-1.5 text-base text-gray-600 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-600 focus:outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500 dark:focus:border-purple-500 dark:focus:ring-purple-500 transition duration-200 w-56 md:w-56"
         />
       </div>
@@ -298,12 +302,14 @@
       <button
         id="btn-tema"
         class="text-lg px-2.5 py-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-transparent hover:border-gray-500 hover:text-gray-700 dark:hover:border-purple-400 dark:hover:text-purple-300 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500 transition duration-200"
+        aria-label="Alternar modo oscuro"
         title="Alternar modo oscuro"
       >🌙</button>
 
       <button
         id="btn-nueva-tarea"
         class="bg-gray-600 hover:bg-gray-500 active:scale-95 text-white text-sm font-semibold px-4 py-1.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 dark:focus:ring-purple-400 transition duration-200"
+        aria-label="Abrir modal para crear nueva tarea"
       >+ Nueva tarea</button>
 
       <div id="avatar-usuario" class="w-9 h-9 rounded-full dark:bg-gradient-to-br dark:from-purple-600 dark:to-pink-500 flex items-center justify-center font-bold text-xs cursor-pointer select-none">SM</div>
@@ -351,12 +357,12 @@
         <h1 class="text-2xl font-bold"><span class="text-gray-800 dark:text-purple-300">Tareas</span></h1>
         <div class="flex items-center gap-2 flex-wrap">
           <div id="tabs-container" class="flex gap-1 border border-gray-200 dark:border-gray-800 rounded-lg p-1">
-            <button data-filter="todas"       class="tab tab-active px-3 py-1 rounded-md text-xs font-medium text-white transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500 focus:ring-inset">Todas</button>
-            <button data-filter="pendientes"  class="tab px-3 py-1 rounded-md text-xs font-medium hover:text-gray-800 dark:hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500 focus:ring-inset">Pendientes</button>
-            <button data-filter="completadas" class="tab px-3 py-1 rounded-md text-xs font-medium hover:text-gray-800 dark:hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500 focus:ring-inset">Completadas</button>
+            <button data-filter="todas"       class="tab tab-active px-3 py-1 rounded-md text-xs font-medium text-white transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500 focus:ring-inset" aria-label="Ver todas las tareas">Todas</button>
+            <button data-filter="pendientes"  class="tab px-3 py-1 rounded-md text-xs font-medium hover:text-gray-800 dark:hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500 focus:ring-inset" aria-label="Ver solo tareas pendientes">Pendientes</button>
+            <button data-filter="completadas" class="tab px-3 py-1 rounded-md text-xs font-medium hover:text-gray-800 dark:hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500 focus:ring-inset" aria-label="Ver solo tareas completadas">Completadas</button>
           </div>
-          <button id="btn-marcar-todas" class="px-3 py-1 rounded-md text-xs font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 bg-white dark:bg-transparent hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500" title="Marcar todas como completadas">✓ Todas</button>
-          <button id="btn-borrar-completadas" class="px-3 py-1 rounded-md text-xs font-medium border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-red-400/80 bg-white dark:bg-transparent hover:bg-gray-200 dark:hover:bg-red-900/30 hover:border-gray-400 dark:hover:border-red-500/50 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-red-500" title="Borrar todas las completadas">🗑️ Completadas</button>
+          <button id="btn-marcar-todas" class="px-3 py-1 rounded-md text-xs font-medium border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 bg-white dark:bg-transparent hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-purple-500" aria-label="Marcar todas las tareas pendientes como completadas">✓ Todas</button>
+          <button id="btn-borrar-completadas" class="px-3 py-1 rounded-md text-xs font-medium border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-red-400/80 bg-white dark:bg-transparent hover:bg-gray-200 dark:hover:bg-red-900/30 hover:border-gray-400 dark:hover:border-red-500/50 transition duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-red-500" aria-label="Eliminar todas las tareas completadas">🗑️ Completadas</button>
         </div>
       </div>
 
@@ -465,7 +471,7 @@
     <ul>
       <li class="task-card">
         <div class="task-row">
-          <div class="task-check" aria-label="Marcar tarea como completada">✓</div>
+          <button type="button" class="task-check" aria-label="Marcar tarea como completada">✓</button>
           <div class="task-title cursor-pointer" title="Doble clic para editar"></div>
           <button class="btn-eliminar" aria-label="Eliminar tarea">🗑️</button>
         </div>

@@ -82,6 +82,10 @@ taskflow-project/
 - Etiquetas `label` asociadas correctamente a los inputs.
 - Jerarquía de encabezados lógica (un único `h1`, orden h1 → h2 → h3).
 - HTML validado con el [validador W3C](https://validator.w3.org/).
+- **Navegación por teclado:** toda la app es usable con teclado (Tab, Enter, Espacio, Esc, N, Ctrl+F).
+- **Botones con texto o aria-label:** todos los controles tienen texto visible o `aria-label` para lectores de pantalla.
+- **Foco visible:** todos los elementos interactivos tienen `focus:ring-2` o `outline` al navegar con Tab.
+- **Contraste:** paleta con texto `#111827` sobre fondos `#ffffff`/`#f5f5f5` (ratio > 7:1 en modo claro).
 
 ---
 
@@ -177,6 +181,15 @@ Verás la tarea en la sección **Pendientes** con chips `#setup` y `#work`, y es
 | **Marcar varias como completadas** | ✅ | Se puede marcar una a una con el check o usar "✓ Todas" para marcar todas las pendientes. Las tareas se mueven a la sección Completadas. |
 | **Eliminar varias tareas** | ✅ | Se puede eliminar individualmente con el icono 🗑️ o en bloque con "🗑️ Completadas". Hay animación de salida. |
 | **Persistencia (recargar)** | ✅ | Las tareas se guardan en `localStorage` en cada cambio. Al recargar la página, los datos se mantienen. |
+
+### Verificación de accesibilidad
+
+| Requisito | Estado | Detalle |
+|-----------|--------|---------|
+| **Uso con teclado** | ✅ | Tab para navegar, Enter/Espacio para activar. Atajos: N (nueva tarea), Esc (cerrar modal), Ctrl+F (buscar). |
+| **aria-label en botones** | ✅ | Botones con solo icono (tema 🌙, eliminar 🗑️, check ✓) tienen `aria-label`. Los dinámicos (etiquetas) también. |
+| **Contraste de colores** | ✅ | Modo claro: texto `#111827` sobre `#ffffff` (ratio > 12:1). Texto secundario `#6b7280` sobre blanco (~4.6:1). |
+| **Foco visible con Tab** | ✅ | Todos los interactivos tienen `focus:ring-2` o `outline` en `:focus-visible`. El check de tarea usa `outline` personalizado. |
 
 ---
 
