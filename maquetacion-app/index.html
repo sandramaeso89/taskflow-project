@@ -166,23 +166,54 @@
       background-color: var(--color-borde-claro);
       border-color: #d1d5db;
     }
+
+    /* Responsive: pantallas pequeñas */
+    @media (max-width: 767px) {
+      .layout-main {
+        padding: var(--spacing-md);
+      }
+      .header-responsive {
+        padding-left: var(--spacing-md);
+        padding-right: var(--spacing-md);
+        flex-wrap: wrap;
+        gap: var(--spacing-sm);
+      }
+      .header-logo {
+        font-size: 1.75rem;
+      }
+      .header-actions {
+        flex-wrap: wrap;
+      }
+      .input-buscar-resp {
+        max-width: 160px;
+      }
+      .modal-content {
+        padding: var(--spacing-md);
+        margin: var(--spacing-md);
+      }
+      .footer-responsive {
+        padding-left: var(--spacing-md);
+        padding-right: var(--spacing-md);
+      }
+    }
+
   </style>
 </head>
 
 <body class="bg-gray-950 text-gray-300 min-h-screen grid grid-rows-[auto_1fr_auto]">
 
   <!-- Encabezado -->
-  <header class="bg-gray-900 border-b border-gray-800 px-8 py-4 flex items-center justify-between sticky top-0 z-50">
-    <div class="text-6xl font-bold text-purple-300 leading-none">Task<span class="font-normal text-gray-500">Flow</span></div>
+  <header class="header-responsive bg-gray-900 border-b border-gray-800 px-8 py-4 flex items-center justify-between sticky top-0 z-50">
+    <div class="header-logo text-4xl md:text-6xl font-bold text-purple-300 leading-none">Task<span class="font-normal text-gray-500">Flow</span></div>
 
-    <div class="flex items-center gap-3">
+    <div class="header-actions flex items-center gap-3">
       <div class="relative">
         <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 text-sm">🔍</span>
         <input
           type="text"
           id="input-buscar"
           placeholder="Buscar tarea…"
-          class="bg-gray-800 border border-gray-700 rounded-lg pl-8 pr-3 py-1.5 text-base text-gray-300 placeholder-gray-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition duration-200 w-56"
+          class="input-buscar-resp bg-gray-800 border border-gray-700 rounded-lg pl-8 pr-3 py-1.5 text-base text-gray-300 placeholder-gray-600 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition duration-200 w-56 md:w-56"
         />
       </div>
 
@@ -201,10 +232,9 @@
     </div>
   </header>
 
-  <!-- Distribución principal -->
-  <div class="flex min-h-0">
-
-    <!-- Barra lateral -->
+  <!-- Distribución principal (estadísticas izquierda, contenido derecha) -->
+  <div class="layout-principal flex min-h-0 flex-row">
+    <!-- Barra lateral de estadísticas (izquierda) -->
     <aside class="w-56 flex-shrink-0 bg-gray-900 border-r border-gray-800 p-5 flex flex-col gap-6">
       <div>
         <h3 class="text-xs text-gray-500 uppercase tracking-widest mb-3">Estadísticas</h3>
@@ -236,8 +266,8 @@
       </div>
     </aside>
 
-    <!-- Contenido principal -->
-    <main class="flex-1 p-8 overflow-y-auto">
+    <!-- Contenido principal (derecha) -->
+    <main class="layout-main flex-1 min-w-0 p-8 overflow-y-auto">
 
       <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
         <h1 class="text-2xl font-bold">Mis <span class="text-purple-300">Tareas</span></h1>
@@ -253,7 +283,7 @@
         <div id="filtro-etiquetas" class="flex flex-wrap gap-2 text-xs text-gray-400"></div>
       </div>
 
-      <!-- Estadísticas -->
+      <!-- Estadísticas en main -->
       <div class="flex gap-4 mb-8 flex-wrap">
         <div class="stats-card flex-1 min-w-[100px] bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-col gap-2 hover:-translate-y-1 transition duration-200">
           <span class="text-xl">📝</span>
@@ -304,8 +334,8 @@
   </div>
 
   <!-- Ventana modal -->
-  <div id="modal-overlay" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[200]">
-    <div class="bg-gray-900 border border-gray-700 rounded-xl p-8 w-[min(420px,92vw)] shadow-2xl">
+  <div id="modal-overlay" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4">
+    <div class="modal-content bg-gray-900 border border-gray-700 rounded-xl p-6 sm:p-8 w-full max-w-[min(420px,92vw)] shadow-2xl">
       <h3 class="text-lg font-bold text-purple-300 mb-5">Nueva tarea</h3>
       <form id="form-nueva-tarea" novalidate>
         <label for="input-tarea" class="block text-sm text-gray-400 mb-1">Descripción de la tarea</label>
@@ -338,7 +368,7 @@
   </div>
 
   <!-- Pie de página -->
-  <footer class="bg-gray-900 border-t border-gray-800 px-8 py-3 text-center text-xs text-gray-500">
+  <footer class="footer-responsive bg-gray-900 border-t border-gray-800 px-8 py-3 text-center text-xs text-gray-500">
     TaskFlow — Sandra Maeso · DAM · Ciberseguridad y Python
   </footer>
 
