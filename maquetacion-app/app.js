@@ -89,15 +89,30 @@ function mostrarToast(mensaje) {
 // ── 2. Utilidades de almacenamiento ──
 
 /**
+ * Migra una tarea al formato actual (id, title, completed, createdAt).
+ * @param {Object} tarea - Tarea en formato antiguo o nuevo
+ * @returns {{id:number,title:string,completed:boolean,createdAt:number}}
+ */
+function migrarTarea(tarea) {
+  return {
+    id: tarea.id,
+    title: tarea.title ?? tarea.texto ?? "",
+    completed: tarea.completed ?? tarea.completada ?? false,
+    createdAt: tarea.createdAt ?? Date.now(),
+  };
+}
+
+/**
  * Carga las tareas persistidas en localStorage.
- * @returns {Array<{id:number,texto:string,completada:boolean}>}
+ * @returns {Array<{id:number,title:string,completed:boolean,createdAt:number}>}
  */
 function cargarTareasPersistidas() {
   try {
     const data = localStorage.getItem(STORAGE_KEY_TAREAS);
     if (!data) return [];
     const parsed = JSON.parse(data);
-    return Array.isArray(parsed) ? parsed : [];
+    const arr = Array.isArray(parsed) ? parsed : [];
+    return arr.map(migrarTarea);
   } catch {
     // Si algo falla, devolvemos lista vacía para no romper la interfaz.
     return [];
@@ -106,7 +121,7 @@ function cargarTareasPersistidas() {
 
 /**
  * Guarda el estado actual de tareas en localStorage.
- * @param {Array<{id:number,texto:string,completada:boolean}>} tareasAGuardar
+ * @param {Array<{id:number,title:string,completed:boolean,createdAt:number}>} tareasAGuardar
  */
 function guardarTareasEnLocalStorage(tareasAGuardar) {
   try {
@@ -124,7 +139,7 @@ function guardarTareasEnLocalStorage(tareasAGuardar) {
  */
 function obtenerEstadisticasTareas() {
   const total = tareas.length;
-  const completadas = tareas.filter((tarea) => tarea.completada).length;
+  const completadas = tareas.filter((tarea) => tarea.completed).length;
   const pendientes = total - completadas;
   return { total, completadas, pendientes };
 }
@@ -231,7 +246,7 @@ function validarTextoNuevaTarea(textoCrudo) {
   }
 
   const yaExiste = tareas.some(
-    (tarea) => tarea.texto.trim().toLowerCase() === textoNormalizado.toLowerCase()
+    (tarea) => (tarea.title ?? tarea.texto ?? "").trim().toLowerCase() === textoNormalizado.toLowerCase()
   );
   if (yaExiste) {
     return { esValido: false, mensajeError: "Ya existe una tarea con ese mismo texto.", textoNormalizado };
@@ -242,14 +257,16 @@ function validarTextoNuevaTarea(textoCrudo) {
 
 /**
  * Crea una nueva tarea a partir de un texto ya validado.
- * @param {string} texto
- * @returns {{id:number,texto:string,completada:boolean}}
+ * @param {string} titulo - Texto de la tarea
+ * @returns {{id:number,title:string,completed:boolean,createdAt:number}}
  */
-function crearTarea(texto) {
+function crearTarea(titulo) {
+  const now = Date.now();
   return {
-    id: Date.now() + (++contadorIdTarea),
-    texto,
-    completada: false,
+    id: now + (++contadorIdTarea),
+    title: titulo,
+    completed: false,
+    createdAt: now,
   };
 }
 
@@ -313,14 +330,14 @@ function alternarTareaCompletada(idTarea) {
   const tarea = tareas.find((item) => item.id === idTarea);
   if (!tarea) return;
 
-  tarea.completada = !tarea.completada;
+  tarea.completed = !tarea.completed;
   guardarTareasEnLocalStorage(tareas);
 
   const elemento = document.querySelector(`[data-id="${idTarea}"]`);
   if (elemento) {
-    elemento.classList.toggle(CLASE_DONE, tarea.completada);
+    elemento.classList.toggle(CLASE_DONE, tarea.completed);
 
-    if (tarea.completada && listaCompletadas) {
+    if (tarea.completed && listaCompletadas) {
       listaCompletadas.appendChild(elemento);
     } else if (listaPendientes) {
       listaPendientes.appendChild(elemento);
@@ -358,7 +375,7 @@ function escapeHTML(texto) {
 
 /**
  * Crea el elemento visual de una tarea usando la plantilla HTML.
- * @param {{id:number,texto:string,completada:boolean}} tarea
+ * @param {{id:number,title:string,completed:boolean,createdAt:number}} tarea
  * @param {{resaltar?:boolean}} [opciones]
  * @returns {HTMLLIElement}
  */
@@ -367,18 +384,19 @@ function crearElementoTarea(tarea, opciones) {
     return crearElementoTareaFallback(tarea, opciones);
   }
 
+  const titulo = tarea.title ?? tarea.texto ?? "";
   const li = templateTarea.content.cloneNode(true).querySelector("li");
   li.classList.add(CLASE_TASK_CARD);
-  if (tarea.completada) {
+  if (tarea.completed ?? tarea.completada) {
     li.classList.add(CLASE_DONE);
   }
   li.dataset.id = String(tarea.id);
-  const hashtags = extraerHashtags(tarea.texto);
+  const hashtags = extraerHashtags(titulo);
   li.dataset.hashtags = hashtags.join(" ");
 
   const tituloEl = li.querySelector(".task-title");
   const tagsEl = li.querySelector(".task-tags");
-  if (tituloEl) tituloEl.textContent = tarea.texto;
+  if (tituloEl) tituloEl.textContent = titulo;
   if (tagsEl && hashtags.length > 0) {
     tagsEl.innerHTML = hashtags
       .map(
@@ -414,16 +432,17 @@ function crearElementoTarea(tarea, opciones) {
 
 /**
  * Crea una tarea sin plantilla si el template no existe (fallback).
- * @param {{id:number,texto:string,completada:boolean}} tarea
+ * @param {{id:number,title:string,completed:boolean,createdAt:number}} tarea
  * @param {{resaltar?:boolean}} [opciones]
  * @returns {HTMLLIElement}
  */
 function crearElementoTareaFallback(tarea, opciones) {
+  const titulo = tarea.title ?? tarea.texto ?? "";
   const li = document.createElement("li");
   li.classList.add(CLASE_TASK_CARD);
-  if (tarea.completada) li.classList.add(CLASE_DONE);
+  if (tarea.completed ?? tarea.completada) li.classList.add(CLASE_DONE);
   li.dataset.id = String(tarea.id);
-  const hashtags = extraerHashtags(tarea.texto);
+  const hashtags = extraerHashtags(titulo);
   li.dataset.hashtags = hashtags.join(" ");
   const chipsHTML =
     hashtags.length > 0
@@ -434,7 +453,7 @@ function crearElementoTareaFallback(tarea, opciones) {
           )
           .join("")}</div>`
       : "";
-  li.innerHTML = `<div class="task-row"><div class="task-check" aria-label="Marcar tarea como completada">✓</div><div class="task-title">${escapeHTML(tarea.texto)}</div><button class="btn-eliminar" aria-label="Eliminar tarea">🗑️</button></div>${chipsHTML}`;
+  li.innerHTML = `<div class="task-row"><div class="task-check" aria-label="Marcar tarea como completada">✓</div><div class="task-title">${escapeHTML(titulo)}</div><button class="btn-eliminar" aria-label="Eliminar tarea">🗑️</button></div>${chipsHTML}`;
   li.querySelector(".task-check")?.addEventListener("click", () => alternarTareaCompletada(tarea.id));
   li.querySelector(".btn-eliminar")?.addEventListener("click", () => eliminarTarea(tarea.id));
   if (opciones?.resaltar) {
@@ -451,13 +470,14 @@ function crearElementoTareaFallback(tarea, opciones) {
 
 /**
  * Inserta una tarea en la lista correspondiente (pendientes o completadas).
- * @param {{id:number,texto:string,completada:boolean}} tarea
+ * @param {{id:number,title:string,completed:boolean,createdAt:number}} tarea
  * @param {{resaltar?:boolean}} [opciones]
  */
 function renderizarTareaEnLista(tarea, opciones) {
   const elemento = crearElementoTarea(tarea, opciones);
+  const completada = tarea.completed ?? tarea.completada;
 
-  if (tarea.completada && listaCompletadas) {
+  if (completada && listaCompletadas) {
     listaCompletadas.appendChild(elemento);
   } else if (listaPendientes) {
     listaPendientes.appendChild(elemento);
@@ -532,7 +552,8 @@ function actualizarChipsHashtag() {
 
   const setHashtags = new Set();
   tareas.forEach((tarea) => {
-    extraerHashtags(tarea.texto).forEach((tag) => setHashtags.add(tag));
+    const titulo = tarea.title ?? tarea.texto ?? "";
+    extraerHashtags(titulo).forEach((tag) => setHashtags.add(tag));
   });
 
   contenedorFiltrosEtiquetas.innerHTML = "";
