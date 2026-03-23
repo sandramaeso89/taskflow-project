@@ -247,6 +247,22 @@ Estado actual del trabajo para migrar TaskFlow a API con Express:
    Qué hicimos: dejamos `dev` exactamente como indica el ejercicio: `nodemon src/index.js`.  
    Para qué sirve: cumplir al detalle el requisito académico.
 
+8. ✅ **Capa de servicios (`task.service.js`)**  
+   Qué hicimos: creamos persistencia simulada en memoria (`let tasks = []`) y métodos `obtenerTodas()`, `crearTarea(data)`, `eliminarTarea(id)`.  
+   Para qué sirve: separar la lógica de negocio de Express y preparar el cambio futuro a base de datos.
+
+9. ✅ **Controladores con validación defensiva (`task.controller.js`)**  
+   Qué hicimos: validamos `req.body` y `req.params`, devolvemos `400` si los datos son inválidos, `201` al crear y `204` al borrar.  
+   Para qué sirve: blindar la frontera de red y devolver códigos HTTP correctos.
+
+10. ✅ **Enrutamiento centralizado (`task.routes.js`)**  
+    Qué hicimos: conectamos `GET /`, `POST /`, `DELETE /:id` a los controladores y montamos el router en `index.js` bajo `/api/v1/tasks`.  
+    Para qué sirve: tener arquitectura por capas limpia y una API versionada profesional.
+
+11. ✅ **Código backend comentado (modo didáctico)**  
+    Qué hicimos: añadimos comentarios humanizados en `index.js`, `env.js`, `task.routes.js`, `task.controller.js` y `task.service.js`.  
+    Para qué sirve: entender fácilmente qué hace cada función y cómo fluye una petición por capas.
+
 ---
 
 ## 🛠️ Tecnologías
