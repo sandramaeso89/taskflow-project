@@ -193,6 +193,78 @@ Verás la tarea en la sección **Pendientes** con chips `#setup` y `#work`, y es
 
 ---
 
+## 🔧 Progreso backend (Fase 3)
+
+Estado actual del trabajo para migrar TaskFlow a API con Express:
+
+- ✅ Creado directorio `server/`.
+- ✅ Inicializado proyecto Node con `npm init -y`.
+- ✅ Instaladas dependencias de producción: `express`, `cors`, `dotenv`.
+- ✅ Instalada dependencia de desarrollo: `nodemon`.
+- ✅ Generado `server/package.json` con configuración base.
+
+### Próximos pasos inmediatos
+
+- Crear `server/.env` con `PORT=3000`.
+- Añadir `.env` a `.gitignore`.
+- Crear `server/src/config/env.js` con validación estricta de `process.env.PORT`.
+- Crear `server/src/index.js` y endpoint inicial `GET /health`.
+- Configurar scripts en `server/package.json`:
+  - `dev`: `nodemon src/index.js`
+  - `start`: `node src/index.js`
+
+### Bitácora simple (paso a paso)
+
+1. ✅ **Crear backend base (`server/`)**  
+   Qué hicimos: creamos una carpeta separada para el servidor.  
+   Para qué sirve: mantener frontend y backend ordenados.
+
+2. ✅ **Inicializar Node + instalar paquetes**  
+   Qué hicimos: `npm init -y` + `express`, `cors`, `dotenv`, `nodemon`.  
+   Para qué sirve: ya tenemos el motor para crear API y entorno de desarrollo.
+
+3. ✅ **Crear `.env` con `PORT=3000`**  
+   Qué hicimos: crear `server/.env`.  
+   Para qué sirve: guardar configuración fuera del código.
+
+3.1 ✅ **Proteger `.env` en `.gitignore`**  
+   Qué hicimos: añadimos `.env` y `server/.env` al `.gitignore`.  
+   Para qué sirve: no subir configuración sensible al repositorio.
+
+4. ✅ **Crear `src/config/env.js`**  
+   Qué hicimos: cargamos `.env` con `dotenv` y validamos que exista `PORT`.  
+   Para qué sirve: que el servidor falle rápido si falta configuración.
+
+5. ✅ **Crear `src/index.js` con `/health`**  
+   Qué hicimos: levantamos Express + `cors` + `express.json()` y endpoint `GET /health`.  
+   Para qué sirve: comprobar que la API funciona antes de seguir.
+
+6. ✅ **Arrancar servidor y validar respuesta**  
+   Qué hicimos: ejecutamos `npm run dev` y verificamos `GET /health` con respuesta `{"ok":true,"service":"taskflow-api"}`.  
+   Para qué sirve: confirmar que la base del backend está OK.
+
+7. ✅ **Script `dev` según enunciado**  
+   Qué hicimos: dejamos `dev` exactamente como indica el ejercicio: `nodemon src/index.js`.  
+   Para qué sirve: cumplir al detalle el requisito académico.
+
+8. ✅ **Capa de servicios (`task.service.js`)**  
+   Qué hicimos: creamos persistencia simulada en memoria (`let tasks = []`) y métodos `obtenerTodas()`, `crearTarea(data)`, `eliminarTarea(id)`.  
+   Para qué sirve: separar la lógica de negocio de Express y preparar el cambio futuro a base de datos.
+
+9. ✅ **Controladores con validación defensiva (`task.controller.js`)**  
+   Qué hicimos: validamos `req.body` y `req.params`, devolvemos `400` si los datos son inválidos, `201` al crear y `204` al borrar.  
+   Para qué sirve: blindar la frontera de red y devolver códigos HTTP correctos.
+
+10. ✅ **Enrutamiento centralizado (`task.routes.js`)**  
+    Qué hicimos: conectamos `GET /`, `POST /`, `DELETE /:id` a los controladores y montamos el router en `index.js` bajo `/api/v1/tasks`.  
+    Para qué sirve: tener arquitectura por capas limpia y una API versionada profesional.
+
+11. ✅ **Código backend comentado (modo didáctico)**  
+    Qué hicimos: añadimos comentarios humanizados en `index.js`, `env.js`, `task.routes.js`, `task.controller.js` y `task.service.js`.  
+    Para qué sirve: entender fácilmente qué hace cada función y cómo fluye una petición por capas.
+
+---
+
 ## 🛠️ Tecnologías
 
 - **HTML5** — estructura semántica (header, main, aside, footer), plantilla `<template>`.
