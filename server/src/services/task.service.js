@@ -1,6 +1,26 @@
 // "Base de datos" temporal en memoria.
-let tasks = [];
-let nextId = 1;
+// Dejamos unas tareas iniciales para que la UI no arranque vacia.
+let tasks = [
+  {
+    id: "1",
+    titulo: "Revisar correo y priorizar pendientes #trabajo",
+    completada: false,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "2",
+    titulo: "Preparar la practica de Node.js #estudio",
+    completada: false,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: "3",
+    titulo: "Actualizar README del proyecto #docs",
+    completada: true,
+    createdAt: new Date().toISOString(),
+  },
+];
+let nextId = tasks.length + 1;
 
 function obtenerTodas() {
   // Devuelve todas las tareas tal como están guardadas.
