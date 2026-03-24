@@ -341,6 +341,13 @@ Estado actual del trabajo para migrar TaskFlow a API con Express:
 - `PUT /api/v1/tasks/:id` -> reemplazo total (`200`)
 - `DELETE /api/v1/tasks/:id` -> elimina (`204`)
 
+### Configuración de URL API en frontend
+
+- `maquetacion-app/api/client.js` selecciona backend automáticamente:
+  - `localhost` / `127.0.0.1` -> `http://localhost:3000/api/v1/tasks`
+  - producción -> `https://taskflow-project-25oy.vercel.app/api/v1/tasks`
+- También puedes sobreescribir con `globalThis.__TASKFLOW_API_BASE_URL`.
+
 ### Ejemplos rápidos de uso
 
 ```bash
