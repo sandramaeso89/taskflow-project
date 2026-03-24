@@ -34,8 +34,43 @@ function eliminarTarea(id) {
   tasks.splice(index, 1);
 }
 
+function actualizarParcial(id, data) {
+  const task = tasks.find((item) => item.id === String(id));
+  if (!task) {
+    throw new Error("NOT_FOUND");
+  }
+
+  if (typeof data.completada === "boolean") {
+    task.completada = data.completada;
+  }
+  if (typeof data.titulo === "string") {
+    task.titulo = data.titulo.trim();
+  }
+
+  return task;
+}
+
+function reemplazarTarea(id, data) {
+  const index = tasks.findIndex((item) => item.id === String(id));
+  if (index === -1) {
+    throw new Error("NOT_FOUND");
+  }
+
+  const actual = tasks[index];
+  const reemplazo = {
+    id: actual.id,
+    titulo: data.titulo.trim(),
+    completada: Boolean(data.completada),
+    createdAt: actual.createdAt,
+  };
+  tasks[index] = reemplazo;
+  return reemplazo;
+}
+
 module.exports = {
   obtenerTodas,
   crearTarea,
   eliminarTarea,
+  actualizarParcial,
+  reemplazarTarea,
 };
