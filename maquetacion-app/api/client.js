@@ -1,7 +1,13 @@
 // Cliente HTTP simple para hablar con el backend de TaskFlow.
 // Mantener esta capa separada evita mezclar UI con detalles de red.
 (function () {
-  const API_BASE_URL = "http://localhost:3000/api/v1/tasks";
+  // En local usamos Node en puerto 3000.
+  // En producción usamos el backend desplegado en Vercel.
+  const API_BASE_URL =
+    globalThis.__TASKFLOW_API_BASE_URL ||
+    (location.hostname === "localhost" || location.hostname === "127.0.0.1"
+      ? "http://localhost:3000/api/v1/tasks"
+      : "https://taskflow-project-25oy.vercel.app/api/v1/tasks");
 
   async function request(url, options) {
     const response = await fetch(url, options);
@@ -50,7 +56,7 @@
   }
 
   // Exponemos una única API global para usarla desde app.js.
-  window.taskApi = {
+  globalThis.taskApi = {
     getTasks,
     createTask,
     updateTaskPartial,
