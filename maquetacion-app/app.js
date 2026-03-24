@@ -7,6 +7,7 @@ const CLASE_DONE = "done";
 const DURACION_ANIMACION_ELIMINAR_MS = 300;
 const DURACION_DEBOUNCE_BUSCADOR_MS = 150;
 
+// Referencias principales del DOM (botones, listas, inputs y bloques de UI).
 const btnNuevaTarea = document.getElementById("btn-nueva-tarea");
 const modalOverlay = document.getElementById("modal-overlay");
 const inputTarea = document.getElementById("input-tarea");
@@ -37,10 +38,15 @@ const templateTarea = document.getElementById("task-template");
 const progressFill = document.getElementById("progress-fill");
 const labelProgreso = document.getElementById("pct-label");
 
+// Estado global de la aplicacion en memoria del frontend.
 let tareas = [];
 let filtroActivo = "todas";
 let etiquetaActiva = null;
+let networkStatusTimer = null;
+let loadingStartedAt = 0;
+const MIN_LOADING_VISIBLE_MS = 400;
 
+// Evita ejecutar una funcion demasiadas veces seguidas (ej: input de busqueda).
 function crearDebounce(fn, delayMs) {
   let timeoutId;
   return (...args) => {
@@ -64,14 +70,41 @@ function mostrarToast(mensaje) {
 // Estado visual de red: carga / éxito / error.
 function setNetworkState(tipo, mensaje) {
   if (!networkStatus) return;
+  // Si llega un nuevo estado, cancelamos cualquier auto-ocultado anterior.
+  if (networkStatusTimer) {
+    clearTimeout(networkStatusTimer);
+    networkStatusTimer = null;
+  }
+
   networkStatus.textContent = mensaje || "";
-  networkStatus.className = "text-xs mb-4";
-  if (tipo === "loading") networkStatus.classList.add("text-blue-500");
-  if (tipo === "success") networkStatus.classList.add("text-emerald-600");
-  if (tipo === "error") networkStatus.classList.add("text-red-500");
-  if (tipo === "idle") networkStatus.classList.add("text-gray-500");
+  networkStatus.className = "text-[11px] mb-5 -mt-2";
+
+  if (tipo === "loading") {
+    // Guardamos cuando empieza la carga para asegurar visibilidad minima.
+    loadingStartedAt = Date.now();
+    networkStatus.classList.add("text-blue-500");
+    return;
+  }
+
+  if (tipo === "error") {
+    networkStatus.classList.add("text-red-500");
+    return;
+  }
+
+  if (tipo === "success") {
+    // Muestra exito de forma discreta y lo ocultamos para no ensuciar la UI.
+    networkStatus.classList.add("text-gray-500");
+    networkStatusTimer = setTimeout(() => {
+      setNetworkState("idle", "");
+    }, 1500);
+    return;
+  }
+
+  // En idle (o sin mensaje) se oculta completamente.
+  networkStatus.classList.add("hidden");
 }
 
+// Convierte el formato de tarea de la API al formato que usa la UI.
 function normalizarTareaApi(tarea) {
   return {
     id: String(tarea.id),
@@ -81,14 +114,29 @@ function normalizarTareaApi(tarea) {
   };
 }
 
+// Garantiza que el usuario llegue a ver el estado "loading".
+function cumplirTiempoMinimoDeLoading() {
+  // Si la API responde demasiado rapido, mantenemos "loading"
+  // unos milisegundos para que el usuario llegue a percibirlo.
+  const transcurrido = Date.now() - loadingStartedAt;
+  const restante = MIN_LOADING_VISIBLE_MS - transcurrido;
+  if (restante > 0) {
+    return new Promise((resolve) => setTimeout(resolve, restante));
+  }
+  return Promise.resolve();
+}
+
+// Carga inicial de tareas desde el backend.
 async function cargarTareasDesdeApi() {
   setNetworkState("loading", "Cargando tareas desde el servidor...");
   const data = await globalThis.taskApi.getTasks();
+  await cumplirTiempoMinimoDeLoading();
   const arr = Array.isArray(data) ? data : [];
   tareas = arr.map(normalizarTareaApi);
   setNetworkState("success", "Tareas sincronizadas con el servidor.");
 }
 
+// Calcula valores para los contadores (total, completadas, pendientes).
 function obtenerEstadisticasTareas() {
   const total = tareas.length;
   const completadas = tareas.filter((t) => t.completed).length;
@@ -96,6 +144,7 @@ function obtenerEstadisticasTareas() {
   return { total, completadas, pendientes };
 }
 
+// Refresca todos los contadores y la barra de progreso.
 function actualizarContadores() {
   const { total, completadas, pendientes } = obtenerEstadisticasTareas();
   if (statTotal) statTotal.textContent = String(total);
@@ -112,6 +161,7 @@ function actualizarContadores() {
   actualizarMensajesVacio();
 }
 
+// Muestra/oculta mensajes de lista vacia segun haya tareas en cada seccion.
 function actualizarMensajesVacio() {
   if (listaPendientes && emptyPendientes) {
     emptyPendientes.style.display = listaPendientes.querySelector(".task-card") ? "none" : "";
@@ -121,6 +171,7 @@ function actualizarMensajesVacio() {
   }
 }
 
+// Abre modal para crear tarea y limpia estado previo del formulario.
 function abrirModalNuevaTarea() {
   if (!modalOverlay || !inputTarea) return;
   modalOverlay.classList.remove("hidden");
@@ -132,17 +183,20 @@ function abrirModalNuevaTarea() {
   inputTarea.focus();
 }
 
+// Cierra modal de nueva tarea.
 function cerrarModalNuevaTarea() {
   if (!modalOverlay) return;
   modalOverlay.classList.add("hidden");
 }
 
+// Validacion minima del titulo antes de llamar a la API.
 function validarTitulo(textoCrudo) {
   const texto = textoCrudo.trim();
   if (texto.length < 3) return { ok: false, msg: "El título debe tener al menos 3 caracteres." };
   return { ok: true, texto };
 }
 
+// Flujo completo de crear tarea: validar -> API -> render -> feedback.
 async function manejarSubmitNuevaTarea() {
   if (!inputTarea) return;
   const validacion = validarTitulo(inputTarea.value);
@@ -157,6 +211,7 @@ async function manejarSubmitNuevaTarea() {
   try {
     setNetworkState("loading", "Guardando tarea...");
     const creada = await globalThis.taskApi.createTask({ titulo: validacion.texto });
+    await cumplirTiempoMinimoDeLoading();
     const tarea = normalizarTareaApi(creada);
     tareas.push(tarea);
     renderizarTareaEnLista(tarea, { resaltar: true });
@@ -171,6 +226,7 @@ async function manejarSubmitNuevaTarea() {
   }
 }
 
+// Cambia el titulo de una tarea con edicion inline.
 async function iniciarEdicionTarea(idTarea) {
   const tarea = tareas.find((t) => t.id === String(idTarea));
   if (!tarea) return;
@@ -200,6 +256,7 @@ async function iniciarEdicionTarea(idTarea) {
         titulo: validacion.texto,
         completada: Boolean(tarea.completed),
       });
+      await cumplirTiempoMinimoDeLoading();
       tarea.title = actualizada.titulo;
       tituloEl.textContent = tarea.title;
       li.dataset.hashtags = extraerHashtags(tarea.title).join(" ");
@@ -237,10 +294,12 @@ async function iniciarEdicionTarea(idTarea) {
   });
 }
 
+// Elimina una tarea tanto en backend como en la UI local.
 async function eliminarTarea(idTarea) {
   try {
     setNetworkState("loading", "Eliminando tarea...");
     await globalThis.taskApi.deleteTask(idTarea);
+    await cumplirTiempoMinimoDeLoading();
     tareas = tareas.filter((t) => t.id !== String(idTarea));
     const elemento = document.querySelector(`[data-id="${idTarea}"]`);
     if (elemento) {
@@ -256,6 +315,7 @@ async function eliminarTarea(idTarea) {
   }
 }
 
+// Cambia estado completada/pendiente de una tarea.
 async function alternarTareaCompletada(idTarea) {
   const tarea = tareas.find((t) => t.id === String(idTarea));
   if (!tarea) return;
@@ -264,6 +324,7 @@ async function alternarTareaCompletada(idTarea) {
   try {
     setNetworkState("loading", "Actualizando estado...");
     const actualizada = await globalThis.taskApi.updateTaskPartial(idTarea, { completada: nuevoEstado });
+    await cumplirTiempoMinimoDeLoading();
     tarea.completed = Boolean(actualizada.completada);
     const elemento = document.querySelector(`[data-id="${idTarea}"]`);
     if (elemento) {
@@ -281,12 +342,14 @@ async function alternarTareaCompletada(idTarea) {
   }
 }
 
+// Marca todas las pendientes como completadas.
 async function marcarTodasCompletadas() {
   const pendientes = tareas.filter((t) => !t.completed);
   if (pendientes.length === 0) return mostrarToast("No hay tareas pendientes");
   try {
     setNetworkState("loading", "Marcando tareas...");
     await Promise.all(pendientes.map((t) => globalThis.taskApi.updateTaskPartial(t.id, { completada: true })));
+    await cumplirTiempoMinimoDeLoading();
     pendientes.forEach((t) => (t.completed = true));
     if (listaPendientes && listaCompletadas) {
       listaPendientes.querySelectorAll(`.${CLASE_TASK_CARD}`).forEach((el) => {
@@ -302,12 +365,14 @@ async function marcarTodasCompletadas() {
   }
 }
 
+// Elimina todas las tareas completadas en bloque.
 async function borrarTodasCompletadas() {
   const completadas = tareas.filter((t) => t.completed);
   if (completadas.length === 0) return mostrarToast("No hay tareas completadas para borrar");
   try {
     setNetworkState("loading", "Borrando completadas...");
     await Promise.all(completadas.map((t) => globalThis.taskApi.deleteTask(t.id)));
+    await cumplirTiempoMinimoDeLoading();
     const ids = new Set(completadas.map((t) => t.id));
     tareas = tareas.filter((t) => !ids.has(t.id));
     ids.forEach((id) => {
@@ -326,18 +391,21 @@ async function borrarTodasCompletadas() {
   }
 }
 
+// Extrae hashtags validos del texto (#algo) para filtros.
 function extraerHashtags(texto) {
   const coincidencias = texto.match(/#([a-zA-Z0-9áéíóúÁÉÍÓÚñÑ_]+)/g);
   if (!coincidencias) return [];
   return coincidencias.map((tag) => tag.slice(1).toLowerCase());
 }
 
+// Escapa texto antes de inyectarlo en HTML para evitar XSS basico.
 function escapeHTML(texto) {
   const div = document.createElement("div");
   div.appendChild(document.createTextNode(texto));
   return div.innerHTML;
 }
 
+// Crea un <li> de tarea y conecta sus eventos (check, borrar, editar).
 function crearElementoTarea(tarea, opciones) {
   const titulo = tarea.title;
   const li = templateTarea.content.cloneNode(true).querySelector("li");
@@ -372,22 +440,26 @@ function crearElementoTarea(tarea, opciones) {
   return li;
 }
 
+// Inserta una tarea en la lista visual correspondiente.
 function renderizarTareaEnLista(tarea, opciones) {
   const elemento = crearElementoTarea(tarea, opciones);
   if (tarea.completed && listaCompletadas) listaCompletadas.appendChild(elemento);
   else if (listaPendientes) listaPendientes.appendChild(elemento);
 }
 
+// Limpia las listas visuales antes de repintar desde estado actual.
 function limpiarListasVisuales() {
   listaPendientes.querySelectorAll(`.${CLASE_TASK_CARD}`).forEach((el) => el.remove());
   listaCompletadas.querySelectorAll(`.${CLASE_TASK_CARD}`).forEach((el) => el.remove());
 }
 
+// Convierte el buscador en terminos normalizados.
 function obtenerTerminosBusqueda() {
   if (!inputBuscar) return [];
   return inputBuscar.value.toLowerCase().split(/\s+/).filter(Boolean);
 }
 
+// Aplica filtro por texto + hashtags seleccionados.
 function aplicarFiltrosCombinados() {
   const terminos = obtenerTerminosBusqueda();
   document.querySelectorAll(`.${CLASE_TASK_CARD}`).forEach((item) => {
@@ -403,6 +475,7 @@ function aplicarFiltrosCombinados() {
 
 const filtrarTareasPorTextoDebounced = crearDebounce(aplicarFiltrosCombinados, DURACION_DEBOUNCE_BUSCADOR_MS);
 
+// Genera los chips de hashtag de forma dinamica segun tareas cargadas.
 function actualizarChipsHashtag() {
   if (!contenedorFiltrosEtiquetas) return;
   const setHashtags = new Set();
@@ -427,6 +500,7 @@ function actualizarChipsHashtag() {
   });
 }
 
+// Muestra pestañas "todas/pendientes/completadas" y secciones asociadas.
 function aplicarFiltroDeEstado(nuevoFiltro) {
   filtroActivo = nuevoFiltro;
   tabsFiltro.forEach((tab) => {
@@ -440,6 +514,7 @@ function aplicarFiltroDeEstado(nuevoFiltro) {
   }
 }
 
+// Alterna tema claro/oscuro y lo guarda para proximas visitas.
 function alternarTema() {
   if (!btnTema) return;
   document.documentElement.classList.toggle("dark");
@@ -452,11 +527,13 @@ function alternarTema() {
   }
 }
 
+// Sincroniza icono del boton de tema al arrancar la app.
 function sincronizarIconoTema() {
   if (!btnTema) return;
   btnTema.textContent = document.documentElement.classList.contains("dark") ? "\u{1F319}" : "\u2600\uFE0F";
 }
 
+// Registra todos los listeners de la interfaz y atajos de teclado.
 function inicializarEventos() {
   btnNuevaTarea?.addEventListener("click", abrirModalNuevaTarea);
   formNuevaTarea?.addEventListener("submit", (e) => { e.preventDefault(); manejarSubmitNuevaTarea(); });
@@ -482,6 +559,7 @@ function inicializarEventos() {
   document.getElementById("btn-borrar-completadas")?.addEventListener("click", borrarTodasCompletadas);
 }
 
+// Punto de arranque de la app: carga datos y renderiza estado inicial.
 async function inicializarTaskFlow() {
   sincronizarIconoTema();
   try {
@@ -496,6 +574,7 @@ async function inicializarTaskFlow() {
   }
 }
 
+// Bootstrapping inicial.
 inicializarEventos();
 inicializarTaskFlow();
 

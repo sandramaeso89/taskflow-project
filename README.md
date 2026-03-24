@@ -1,34 +1,27 @@
-# TaskFlow (Proyecto de practicas)
+# TaskFlow
 
-Este proyecto es una app de tareas que hice en clase para practicar:
-
-- frontend con HTML/CSS/JS
-- backend con Node.js + Express
-- conexion frontend-backend con API REST
-- despliegue en Vercel
-
-La idea es que las tareas ya no se guarden solo en el navegador, sino que pasen por el servidor.
+Aplicacion web de gestion de tareas con frontend + backend Express, creada como proyecto para migrar de `localStorage` a una API REST y desplegar todo en Vercel.
 
 ## Demo
 
 - Frontend: [https://taskflow-project-orcin-eight.vercel.app](https://taskflow-project-orcin-eight.vercel.app)
-- Backend (health): [https://taskflow-project-25oy.vercel.app/health](https://taskflow-project-25oy.vercel.app/health)
-- Swagger backend: [https://taskflow-project-25oy.vercel.app/api-docs](https://taskflow-project-25oy.vercel.app/api-docs)
+- Backend health: [https://taskflow-project-25oy.vercel.app/health](https://taskflow-project-25oy.vercel.app/health)
+- Swagger: [https://taskflow-project-25oy.vercel.app/api-docs](https://taskflow-project-25oy.vercel.app/api-docs)
 
-## Que he hecho (resumen sencillo)
+## Objetivo del proyecto
 
-1. Cree una carpeta `server/` con Express.
-2. Prepare variables de entorno con `.env` (`PORT=3000`).
-3. Hice API REST de tareas por capas:
-   - rutas
-   - controladores
-   - servicios
-4. Migre el frontend para usar `fetch` contra la API.
-5. Quite la persistencia de tareas en `localStorage` (solo dejo el tema claro/oscuro).
-6. Añadi manejo de errores y endpoint de prueba para error 500.
-7. Documente API con Swagger.
-8. Subi frontend y backend a Vercel.
-9. Añadi estado visual de red en la interfaz (cargando/exito/error).
+- Migrar la gestion de tareas al backend.
+- Separar la logica por capas (`routes`, `controllers`, `services`).
+- Manejar errores de forma consistente (`400`, `404`, `500`).
+- Documentar y desplegar frontend + backend.
+- Mostrar estado de carga en interfaz durante peticiones async.
+
+## Stack usado
+
+- Frontend: HTML, CSS (Tailwind), JavaScript vanilla
+- Backend: Node.js, Express, dotenv, cors
+- Documentacion API: Swagger (`swagger-ui-express`, `yamljs`)
+- Deploy: Vercel
 
 ## Estructura del proyecto
 
@@ -40,51 +33,127 @@ taskflow-project/
 │   └── network/client.js
 ├── server/
 │   ├── src/
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   ├── docs/
+│   │   ├── middlewares/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   ├── app.js
+│   │   └── index.js
 │   ├── api/index.js
 │   ├── vercel.json
 │   └── README.md
 └── docs/backend-api.md
 ```
 
-## Endpoints principales
+## Migracion a API (resumen)
+
+Antes las tareas se guardaban en el navegador.  
+Ahora la fuente de verdad esta en la API REST del backend.
+
+En el frontend se creo una capa de red dedicada (`maquetacion-app/network/client.js`) y `app.js` consume esa capa en lugar de usar `localStorage` para tareas.
+
+### Ejemplo de cliente HTTP (`fetch`)
+
+```js
+async function getTasks() {
+  return request(endpoint(), { method: "GET" });
+}
+
+async function createTask(payload) {
+  return request(endpoint(), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+```
+
+## API REST
 
 Base local: `http://localhost:3000/api/v1/tasks`
 
 - `GET /` -> listar tareas
 - `POST /` -> crear tarea
-- `PATCH /:id` -> actualizar parte de una tarea
-- `PUT /:id` -> reemplazar tarea completa
-- `DELETE /:id` -> eliminar tarea
+- `PATCH /:id` -> actualizar parcialmente
+- `PUT /:id` -> reemplazar tarea
+- `DELETE /:id` -> borrar tarea
 
-Tambien:
+Extras:
 
 - `GET /health`
-- `GET /api/v1/tasks/_test/error500` (para probar error interno)
+- `GET /api/v1/tasks/_test/error500` (forzar error interno para pruebas)
 
-## Pruebas de endpoints (debug de errores)
+### Ejemplo request/response
 
-Pruebas que hice de forma manual con Postman/curl/Thunder Client:
+`POST /api/v1/tasks`
+
+```json
+{
+  "titulo": "Preparar demo del lunes"
+}
+```
+
+Respuesta esperada:
+
+```json
+{
+  "id": "1",
+  "titulo": "Preparar demo del lunes",
+  "completada": false,
+  "createdAt": "2026-03-24T00:00:00.000Z"
+}
+```
+
+## Manejo de errores y debug por endpoints
+
+Pruebas manuales realizadas con Postman/Thunder Client/curl:
 
 - `POST` sin titulo -> `400`
-- `DELETE` con id que no existe -> `404`
-- endpoint `_test/error500` -> `500`
-- casos normales (`GET`, `POST`, `PATCH`, `PUT`, `DELETE`) -> correctos
+- `DELETE` con ID inexistente -> `404`
+- `GET /_test/error500` -> `500`
+- Flujo normal CRUD -> correcto
 
-## Extra pedido (mensaje de carga)
+### Ejemplo rapido con curl
 
-En frontend agregue un estado de red visible:
+```bash
+curl -X GET http://localhost:3000/health
+curl -X GET http://localhost:3000/api/v1/tasks
+curl -X POST http://localhost:3000/api/v1/tasks \
+  -H "Content-Type: application/json" \
+  -d '{"titulo":"Tarea de prueba"}'
+curl -X DELETE http://localhost:3000/api/v1/tasks/999
+curl -X GET http://localhost:3000/api/v1/tasks/_test/error500
+```
 
-- cargando: cuando espera respuesta del servidor
-- exito: cuando responde bien
-- error: cuando falla
+## Extra: mensaje de carga en la interfaz
 
-Esto se ve en el texto de estado dentro de la app.
+Se implemento un estado visual de red en frontend para mostrar:
 
-Implementacion hecha para cumplir el extra de la tarea:
+- `loading`: mientras espera respuesta
+- `success`: cuando sincroniza correctamente
+- `error`: si la peticion falla
 
-- "modificar la interfaz para que muestre un mensaje de carga mientras espera las respuestas asincronas del servidor"
+### Ejemplo de uso en `app.js`
 
-## Como ejecutar en local
+```js
+setNetworkState("loading", "Cargando tareas desde el servidor...");
+const data = await globalThis.taskApi.getTasks();
+setNetworkState("success", "Tareas sincronizadas con el servidor.");
+```
+
+Esto cumple el extra pedido: mostrar un mensaje de carga durante respuestas asincronas.
+
+## Despliegue en Vercel
+
+- Proyecto frontend desplegado por separado.
+- Proyecto backend (`server/`) desplegado como serverless.
+- Cada push a `main` dispara redeploy automatico.
+
+Nota tecnica importante: en frontend se evito usar rutas estaticas bajo `/api/*` para no colisionar con rutas serverless de Vercel.
+
+## Ejecutar en local
 
 ### 1) Backend
 
@@ -94,30 +163,14 @@ npm install
 npm run dev
 ```
 
-Backend en: `http://localhost:3000`
+Servidor en `http://localhost:3000`.
 
 ### 2) Frontend
 
-Abre `maquetacion-app/index.html` con Live Server o servidor local.
+Abrir `maquetacion-app/index.html` con Live Server (o servidor local equivalente).
 
-## Despliegue en Vercel (lo que hice)
+## Documentacion adicional
 
-- Proyecto 1 en Vercel para frontend
-- Proyecto 2 en Vercel para backend Express (`server/`)
-- Cada push a `main` hace redeploy automatico
+- Documentacion tecnica del backend: `server/README.md`
+- Documento teorico de herramientas API: `docs/backend-api.md`
 
-## Preparado para la revision del lunes
-
-En la revision mostrare estas partes del proyecto:
-
-- migracion del frontend para usar API (sin localStorage para tareas)
-- debug de errores por endpoints (400, 404 y 500)
-- documentacion principal en este README
-- documentacion tecnica en `server/README.md`
-- despliegue funcionando en Vercel (frontend + backend)
-- extra del mensaje de carga en peticiones async
-
-## Nota personal
-
-Este proyecto esta hecho con enfoque de practicas, aprendiendo paso a paso.  
-Seguro hay cosas mejorables, pero el objetivo principal era entender bien la migracion a API, el manejo de errores y el despliegue.
