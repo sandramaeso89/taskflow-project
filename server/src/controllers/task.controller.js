@@ -23,7 +23,57 @@ function crearTarea(req, res) {
   return res.status(201).json(nuevaTarea);
 }
 
-function eliminarTarea(req, res) {
+function actualizarParcial(req, res, next) {
+  const { id } = req.params;
+  const { completada, titulo } = req.body;
+
+  if (!id || typeof id !== "string") {
+    return res.status(400).json({ error: "El id es obligatorio." });
+  }
+
+  if (titulo !== undefined && (typeof titulo !== "string" || titulo.trim().length < 3)) {
+    return res
+      .status(400)
+      .json({ error: "Si envías título, debe ser string y tener al menos 3 caracteres." });
+  }
+
+  if (completada !== undefined && typeof completada !== "boolean") {
+    return res.status(400).json({ error: "Si envías completada, debe ser boolean." });
+  }
+
+  try {
+    const tareaActualizada = taskService.actualizarParcial(id, { titulo, completada });
+    return res.status(200).json(tareaActualizada);
+  } catch (error) {
+    return next(error);
+  }
+}
+
+function reemplazarTarea(req, res, next) {
+  const { id } = req.params;
+  const { titulo, completada } = req.body;
+
+  if (!id || typeof id !== "string") {
+    return res.status(400).json({ error: "El id es obligatorio." });
+  }
+
+  if (!titulo || typeof titulo !== "string" || titulo.trim().length < 3) {
+    return res.status(400).json({ error: "El título es obligatorio y debe tener al menos 3 caracteres." });
+  }
+
+  if (typeof completada !== "boolean") {
+    return res.status(400).json({ error: "El campo completada es obligatorio y debe ser boolean." });
+  }
+
+  try {
+    const tareaReemplazada = taskService.reemplazarTarea(id, { titulo, completada });
+    return res.status(200).json(tareaReemplazada);
+  } catch (error) {
+    return next(error);
+  }
+}
+
+function eliminarTarea(req, res, next) {
   // El id llega por URL: /api/v1/tasks/:id
   const { id } = req.params;
 
@@ -38,18 +88,21 @@ function eliminarTarea(req, res) {
     // 204 = eliminado con éxito, sin contenido de respuesta.
     return res.status(204).send();
   } catch (error) {
-    // Error controlado cuando el id no existe.
-    if (error.message === "NOT_FOUND") {
-      return res.status(404).json({ error: "Tarea no encontrada." });
-    }
-
-    // Cualquier otro error se considera interno del servidor.
-    return res.status(500).json({ error: "Error interno del servidor." });
+    // Delegamos al middleware global para mapear y responder errores.
+    return next(error);
   }
+}
+
+function forzarErrorInterno(req, res, next) {
+  // Endpoint solo para pruebas de Postman/Thunder Client (simula fallo inesperado).
+  return next(new Error("INTERNAL_TEST_ERROR"));
 }
 
 module.exports = {
   obtenerTodas,
   crearTarea,
+  actualizarParcial,
+  reemplazarTarea,
   eliminarTarea,
+  forzarErrorInterno,
 };

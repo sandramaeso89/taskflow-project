@@ -1,6 +1,6 @@
 # ✦ TaskFlow
 
-Aplicación web de gestión de tareas con persistencia local, desarrollada como proyecto del módulo DAM con especialización en Ciberseguridad y Python.
+Aplicación web de gestión de tareas con frontend + backend Express (API REST), desarrollada como proyecto del módulo DAM con especialización en Ciberseguridad y Python.
 
 🔗 **Demo en vivo:** [taskflow-projectsandra.vercel.app](https://taskflow-projectsandra.vercel.app)
 
@@ -19,7 +19,7 @@ Aplicación web de gestión de tareas con persistencia local, desarrollada como 
 - **Añadir tareas** mediante un modal con validación (mínimo de caracteres, sin duplicados, sin solo símbolos).
 - **Marcar como completadas** y mover automáticamente a la sección correspondiente.
 - **Eliminar tareas** con animación de salida.
-- **Persistencia** en `localStorage` para que las tareas sobrevivan a los refrescos.
+- **Persistencia de tareas en backend API** (ya no en `localStorage` para tareas).
 - **Tareas de ejemplo** en el primer arranque para no empezar con la pantalla vacía.
 
 ### Búsqueda y filtros
@@ -61,7 +61,15 @@ taskflow-project/
 ├── maquetacion-app/
 │   ├── index.html   # Maquetación principal, plantilla <template>, estilos
 │   ├── style.css    # CSS generado por Tailwind
-│   └── app.js       # Lógica: tareas, filtros, localStorage, tema, atajos
+│   ├── app.js       # Lógica de UI conectada al backend
+│   └── api/client.js # Capa de red del frontend (fetch)
+├── server/
+│   ├── src/config/env.js
+│   ├── src/services/task.service.js
+│   ├── src/controllers/task.controller.js
+│   ├── src/routes/task.routes.js
+│   └── src/middlewares/error.middleware.js
+├── docs/backend-api.md
 ├── tailwind.config.js
 └── README.md
 ```
@@ -92,7 +100,7 @@ taskflow-project/
 ## 🧠 Lógica principal (`app.js`)
 
 - Gestión del array `tareas` en memoria (alta, baja, toggle de completado).
-- Sincronización con `localStorage` a cada cambio relevante.
+- Sincronización con la API REST (`fetch`) a cada cambio relevante.
 - Renderizado de tareas mediante la plantilla `<template>` en dos listas (`Pendientes` / `Completadas`).
 - Búsqueda de texto y hashtags con filtros combinados.
 - Actualización de estadísticas y barra de progreso.
@@ -180,7 +188,7 @@ Verás la tarea en la sección **Pendientes** con chips `#setup` y `#work`, y es
 | **Título muy largo** | ✅ | El input tiene `maxlength="140"`, por lo que el título queda limitado a 140 caracteres. No se puede escribir más. |
 | **Marcar varias como completadas** | ✅ | Se puede marcar una a una con el check o usar "✓ Todas" para marcar todas las pendientes. Las tareas se mueven a la sección Completadas. |
 | **Eliminar varias tareas** | ✅ | Se puede eliminar individualmente con el icono 🗑️ o en bloque con "🗑️ Completadas". Hay animación de salida. |
-| **Persistencia (recargar)** | ✅ | Las tareas se guardan en `localStorage` en cada cambio. Al recargar la página, los datos se mantienen. |
+| **Persistencia (recargar)** | ✅ | Las tareas se consultan al backend y se mantienen mientras el servidor esté activo (persistencia en memoria en esta fase). |
 
 ### Verificación de accesibilidad
 
@@ -263,6 +271,158 @@ Estado actual del trabajo para migrar TaskFlow a API con Express:
     Qué hicimos: añadimos comentarios humanizados en `index.js`, `env.js`, `task.routes.js`, `task.controller.js` y `task.service.js`.  
     Para qué sirve: entender fácilmente qué hace cada función y cómo fluye una petición por capas.
 
+12. ✅ **Middleware global de errores (Fase C)**  
+    Qué hicimos: creamos `server/src/middlewares/error.middleware.js` con firma `(err, req, res, next)` y mapeo semántico de errores.  
+    Para qué sirve: evitar que fallos no controlados rompan el servidor y devolver respuestas HTTP correctas.
+
+13. ✅ **Mapeo semántico de excepciones HTTP**  
+    Qué hicimos: si el error es `NOT_FOUND` devolvemos `404`; para cualquier otro, registramos `console.error(err)` y devolvemos `500` genérico.  
+    Para qué sirve: proteger detalles internos y mantener contrato de API robusto.
+
+14. ✅ **Controladores conectados al middleware global**  
+    Qué hicimos: en `eliminarTarea` delegamos errores con `next(error)` en lugar de responder localmente.  
+    Para qué sirve: centralizar el manejo de errores en un único punto de la app.
+
+15. ✅ **Pruebas de integración de red (éxito + errores)**  
+    Qué hicimos: probamos endpoints con casos reales:
+    - `GET /api/v1/tasks` → `200` + `[]`
+    - `POST /api/v1/tasks` sin título → `400`
+    - `POST /api/v1/tasks` válido → `201`
+    - `DELETE /api/v1/tasks/999` inexistente → `404`
+    Para qué sirve: validar robustez de la API ante entradas correctas e incorrectas.
+
+16. ✅ **Fase D: consumo desde frontend sin LocalStorage de tareas**  
+    Qué hicimos: creamos `maquetacion-app/api/client.js` y conectamos `app.js` a `fetch` contra `http://localhost:3000/api/v1/tasks`.  
+    Para qué sirve: que la fuente de verdad de tareas sea el backend, no el navegador.
+
+17. ✅ **Estados de red visibles en UI**  
+    Qué hicimos: añadimos estado visual `#network-status` con tres modos: carga, éxito y error.  
+    Para qué sirve: mejorar UX ante latencia o caídas del servidor.
+
+18. ✅ **Documentación de herramientas API**  
+    Qué hicimos: agregamos `docs/backend-api.md` explicando Axios, Postman, Sentry y Swagger, y por qué se usan.  
+    Para qué sirve: reforzar parte teórica y decisiones de ingeniería.
+
+19. ✅ **Bonus: Swagger y pruebas de errores 400/404/500**  
+    Qué hicimos: integramos Swagger UI en `/api-docs`, añadimos especificación OpenAPI y documentamos pruebas de error en Postman/Thunder Client.  
+    Para qué sirve: trazabilidad técnica completa y validación de robustez de la API.
+
+20. ✅ **Middleware de auditoría (`loggerAcademico`)**  
+    Qué hicimos: añadimos logger con métricas de tiempo por request usando `performance.now()` y evento `finish`.  
+    Para qué sirve: observar método, ruta, estado HTTP y latencia real.
+
+21. ✅ **Preparación de despliegue backend en Vercel**  
+    Qué hicimos: separamos `app` y `server`, añadimos `server/api/index.js` y `server/vercel.json` para despliegue serverless.  
+    Para qué sirve: dejar el backend listo para importarlo en Vercel sin cambiar código de negocio.
+
+---
+
+## 🏗️ Arquitectura backend y red
+
+### Capas (separación de responsabilidades)
+
+- **Routes**: reciben URL + verbo HTTP y delegan al controlador.
+- **Controllers**: validan entrada (`req.body`/`req.params`) y devuelven códigos HTTP.
+- **Services**: lógica de negocio pura (sin `req`/`res`), actualmente con persistencia en memoria.
+
+### Middlewares y pipeline
+
+- `cors()` permite peticiones del frontend al backend.
+- `express.json()` transforma JSON de red en `req.body`.
+- `errorHandler(err, req, res, next)` centraliza errores:
+  - `NOT_FOUND` -> `404`
+  - errores no controlados -> log interno + `500` genérico
+
+### Endpoints REST (v1)
+
+- `GET /api/v1/tasks` -> lista tareas
+- `POST /api/v1/tasks` -> crea tarea (`201`)
+- `PATCH /api/v1/tasks/:id` -> cambio parcial (`200`)
+- `PUT /api/v1/tasks/:id` -> reemplazo total (`200`)
+- `DELETE /api/v1/tasks/:id` -> elimina (`204`)
+
+### Ejemplos rápidos de uso
+
+```bash
+curl -X GET http://localhost:3000/api/v1/tasks
+curl -X POST http://localhost:3000/api/v1/tasks -H "Content-Type: application/json" -d '{"titulo":"Mi tarea"}'
+curl -X PATCH http://localhost:3000/api/v1/tasks/1 -H "Content-Type: application/json" -d '{"completada":true}'
+curl -X DELETE http://localhost:3000/api/v1/tasks/1
+```
+
+---
+
+## 🧾 Bonus: Swagger + pruebas de error
+
+### Swagger (documentación exhaustiva)
+
+- URL local: `http://localhost:3000/api-docs`
+- Especificación OpenAPI: `server/src/docs/openapi.yaml`
+- Incluye endpoints de negocio y endpoint de test para error 500.
+
+### Pruebas con Postman / Thunder Client (forzando errores)
+
+| Caso | Request | Resultado esperado |
+|------|---------|-------------------|
+| **400** validación | `POST /api/v1/tasks` body `{}` | `400` + `{"error":"El título es obligatorio..."}` |
+| **404** recurso inexistente | `DELETE /api/v1/tasks/999` | `404` + `{"error":"Recurso no encontrado."}` |
+| **500** error interno | `GET /api/v1/tasks/_test/error500` | `500` + `{"error":"Error interno del servidor."}` |
+
+### Ejemplos request/response (copiar y pegar)
+
+#### 1) Crear tarea correcta
+
+```http
+POST /api/v1/tasks
+Content-Type: application/json
+
+{
+  "titulo": "Preparar demo backend"
+}
+```
+
+Respuesta:
+
+```json
+{
+  "id": "1",
+  "titulo": "Preparar demo backend",
+  "completada": false,
+  "createdAt": "2026-03-23T14:00:00.000Z"
+}
+```
+
+#### 2) Error 400 (sin título)
+
+```http
+POST /api/v1/tasks
+Content-Type: application/json
+
+{}
+```
+
+Respuesta:
+
+```json
+{
+  "error": "El título es obligatorio y debe tener al menos 3 caracteres."
+}
+```
+
+#### 3) Error 500 (forzado)
+
+```http
+GET /api/v1/tasks/_test/error500
+```
+
+Respuesta:
+
+```json
+{
+  "error": "Error interno del servidor."
+}
+```
+
 ---
 
 ## 🛠️ Tecnologías
@@ -270,7 +430,7 @@ Estado actual del trabajo para migrar TaskFlow a API con Express:
 - **HTML5** — estructura semántica (header, main, aside, footer), plantilla `<template>`.
 - **CSS3 / Tailwind (build ya generado)** — layout, tipografía y diseño responsivo.
 - **JavaScript (Vanilla ES6+)** — sin frameworks ni librerías externas.
-- **localStorage** — persistencia en el navegador.
+- **API REST con Express** — persistencia temporal en memoria del backend.
 
 ---
 
