@@ -6,7 +6,8 @@
   const isLocal = location.hostname === "localhost" || location.hostname === "127.0.0.1";
   const PROD_BASES = [
     globalThis.__TASKFLOW_API_BASE_URL,
-    "https://taskflow-project-backend.vercel.app/api/v1/tasks",
+    // Dominio real actual del backend en Vercel.
+    "https://taskflow-project-25oy.vercel.app/api/v1/tasks",
   ].filter(Boolean);
   const API_BASE_URLS = isLocal ? ["http://localhost:3000/api/v1/tasks"] : PROD_BASES;
 
