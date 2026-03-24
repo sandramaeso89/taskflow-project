@@ -62,7 +62,7 @@ taskflow-project/
 │   ├── index.html   # Maquetación principal, plantilla <template>, estilos
 │   ├── style.css    # CSS generado por Tailwind
 │   ├── app.js       # Lógica de UI conectada al backend
-│   └── api/client.js # Capa de red del frontend (fetch)
+│   └── network/client.js # Capa de red del frontend (fetch)
 ├── server/
 │   ├── src/config/env.js
 │   ├── src/services/task.service.js
@@ -292,7 +292,7 @@ Estado actual del trabajo para migrar TaskFlow a API con Express:
     Para qué sirve: validar robustez de la API ante entradas correctas e incorrectas.
 
 16. ✅ **Fase D: consumo desde frontend sin LocalStorage de tareas**  
-    Qué hicimos: creamos `maquetacion-app/api/client.js` y conectamos `app.js` a `fetch` contra `http://localhost:3000/api/v1/tasks`.  
+   Qué hicimos: creamos `maquetacion-app/network/client.js` y conectamos `app.js` a `fetch` contra `http://localhost:3000/api/v1/tasks`.  
     Para qué sirve: que la fuente de verdad de tareas sea el backend, no el navegador.
 
 17. ✅ **Estados de red visibles en UI**  
@@ -343,10 +343,11 @@ Estado actual del trabajo para migrar TaskFlow a API con Express:
 
 ### Configuración de URL API en frontend
 
-- `maquetacion-app/api/client.js` selecciona backend automáticamente:
+- `maquetacion-app/network/client.js` selecciona backend automáticamente:
   - `localhost` / `127.0.0.1` -> `http://localhost:3000/api/v1/tasks`
   - producción -> `https://taskflow-project-25oy.vercel.app/api/v1/tasks`
 - También puedes sobreescribir con `globalThis.__TASKFLOW_API_BASE_URL`.
+- Nota de despliegue en Vercel: se evita usar rutas estáticas bajo `/api/*` en frontend para no colisionar con Serverless Functions.
 
 ### Ejemplos rápidos de uso
 
