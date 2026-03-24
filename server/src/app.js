@@ -1,7 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-const swaggerUi = require("swagger-ui-express");
-const YAML = require("yamljs");
 const taskRoutes = require("./routes/task.routes");
 const { loggerAcademico } = require("./middlewares/logger.middleware");
 const { errorHandler } = require("./middlewares/error.middleware");
@@ -16,6 +14,8 @@ app.use(loggerAcademico);
 // Documentación interactiva (no debe tumbar la API si falla en serverless).
 let swaggerEnabled = false;
 try {
+  const swaggerUi = require("swagger-ui-express");
+  const YAML = require("yamljs");
   const swaggerDocument = YAML.load(`${__dirname}/docs/openapi.yaml`);
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
   swaggerEnabled = true;
