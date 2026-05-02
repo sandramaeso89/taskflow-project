@@ -169,8 +169,26 @@ Servidor en `http://localhost:3000`.
 
 Abrir `maquetacion-app/index.html` con Live Server (o servidor local equivalente).
 
+## Responsive actual
+
+Implementacion responsive actual en `index.html`:
+
+- Header adaptable: en movil los controles del header se envuelven para no romper la fila.
+- Layout principal: en pantallas pequenas se apila en columna (sidebar arriba y tareas abajo).
+- Sidebar: en movil ocupa ancho completo para mejorar legibilidad.
+- Main: reduce padding en movil para aprovechar el espacio.
+- Modal: mantiene ancho y espaciado adaptados a pantallas pequenas.
+
+## Mejoras UI recientes
+
+Refinamientos visuales aplicados manteniendo el estilo actual:
+
+- Jerarquia de cabecera mas equilibrada (logo/subtitulo con mejor balance visual).
+- Consistencia en radios y sombras de componentes principales.
+- Estados vacios mas guiados con micro-textos de ayuda.
+- Estado de red mostrado como "pill" discreta para feedback claro sin recargar la interfaz.
+
 ## Documentacion adicional
 
 - Documentacion tecnica del backend: `server/README.md`
 - Documento teorico de herramientas API: `docs/backend-api.md`
-
